@@ -2,9 +2,9 @@ import { useCart } from "@/lib/cart";
 import { useEffect, useRef, useState } from "react";
 import { ShoppingBag, X, Minus, Plus, MessageCircle } from "lucide-react";
 
-const WHATSAPP = "919014733003";
+const WHATSAPP = "919666585143";
 
-export function FloatingCart() {
+export default function FloatingCart() {
   const { items, open, setOpen, setQty, remove, flies, bump, clear } = useCart();
   const cartRef = useRef<HTMLButtonElement>(null);
   const [target, setTarget] = useState({ x: 0, y: 0 });
@@ -99,7 +99,7 @@ export function FloatingCart() {
                 </div>
               )}
               {items.map((it) => (
-                <div key={it.id} className="flex gap-4 p-3 rounded-xl border bg-card">
+                <div key={it.cartKey} className="flex gap-4 p-3 rounded-xl border bg-card">
                   <img src={it.image} alt={it.name} className="w-20 h-20 rounded-lg object-cover" />
                   <div className="flex-1">
                     <h3 className="font-semibold text-card-foreground">{it.name}</h3>
@@ -107,15 +107,15 @@ export function FloatingCart() {
                     <p className="text-primary font-bold mt-1">₹{it.price * it.qty}</p>
                   </div>
                   <div className="flex flex-col items-end justify-between">
-                    <button onClick={() => remove(it.id)} className="text-muted-foreground hover:text-destructive">
+                    <button onClick={() => remove(it.cartKey)} className="text-muted-foreground hover:text-destructive">
                       <X className="w-4 h-4" />
                     </button>
                     <div className="flex items-center gap-1 border rounded-full px-1">
-                      <button onClick={() => setQty(it.id, it.qty - 1)} className="p-1 hover:text-primary">
+                      <button onClick={() => setQty(it.cartKey, it.qty - 1)} className="p-1 hover:text-primary">
                         <Minus className="w-3 h-3" />
                       </button>
                       <span className="text-sm w-5 text-center">{it.qty}</span>
-                      <button onClick={() => setQty(it.id, it.qty + 1)} className="p-1 hover:text-primary">
+                      <button onClick={() => setQty(it.cartKey, it.qty + 1)} className="p-1 hover:text-primary">
                         <Plus className="w-3 h-3" />
                       </button>
                     </div>
