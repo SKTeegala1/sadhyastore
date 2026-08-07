@@ -29,11 +29,18 @@ export type NutritionFacts = {
     items: NutritionItem[];
 };
 
+export type Category = {
+  id: number;
+  name: string;
+  image: string;
+};
+
 export type Product = {
   id: string;
   name: string;
-  category: string;
-  image: string;
+  categoryId: number;
+  image: string;          // Primary image (used by cards & cart animation)
+  images?: string[];      // Product gallery images
   tagline: string;
 
   price: number;

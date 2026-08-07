@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { PRODUCTS } from "@/data/products";
+import { CATEGORIES, PRODUCTS } from "@/data/products";
 import ProductHeader from "@/components/product/ProductHeader";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
@@ -9,6 +9,9 @@ import Breadcrumb from "@/components/layout/Breadcrumb";
 import ProductPurchase from "@/components/product/ProductPurchase";
 import ProductContent from "@/components/product/ProductContent";
 import { useCart } from "@/lib/cart";
+import ProductGallery from "@/components/product/ProductGallery";
+import ProductSection from "@/components/product/ProductSection";
+import Hero from "@/components/home/Hero";
 
 export const Route = createFileRoute("/product/$id")({
   component: ProductDetailsPage,
@@ -18,9 +21,20 @@ function ProductDetailsPage() {
   const { id } = Route.useParams();
 
   const { items } = useCart();
-  console.log(items);
 
   const product = PRODUCTS.find((p) => p.id === id);
+
+  const category = CATEGORIES.find(
+    c => c.id === product?.categoryId
+);
+  
+  const relatedProducts = PRODUCTS
+  .filter(
+    (p) =>
+      p.categoryId === product?.categoryId &&
+      p.id !== product?.id
+  )
+  .slice(0, 4);
 
   if (!product) {
     return (
@@ -34,6 +48,7 @@ function ProductDetailsPage() {
 
 return (
   <>
+  
 
     <section className="container mx-auto px-4 py-6">
 
@@ -42,7 +57,7 @@ return (
       <Breadcrumb
   items={[
     {
-      label: product.category,
+      label: category?.name ?? "Category",
       to: "/",
     },
     {
@@ -51,7 +66,7 @@ return (
   ]}
 />
 <ProductLayout
-  left={<ProductImage product={product} />}
+  left={<ProductGallery product={product} />}
   right={
    <div className="lg:sticky lg:top-24 space-y-8">
     <ProductHeader product={product} />
@@ -62,6 +77,11 @@ return (
       <ProductContent
             product={product}
         />
+
+        <ProductSection
+    title="You May Also Like"
+    products={relatedProducts}
+/>
 
     </section>
 

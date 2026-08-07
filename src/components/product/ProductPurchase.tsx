@@ -3,10 +3,12 @@ import type { Product } from "@/lib/cart";
 import { Button } from "@/components/ui/button";
 import { useCart } from "@/lib/cart";
 import { Leaf, ShieldCheck, Truck } from "lucide-react";
+import {  useEffect } from "react";
 
 type Props = {
   product: Product;
 };
+
 
 export default function ProductPurchase({ product }: Props) {
   const { add } = useCart();
@@ -17,6 +19,15 @@ export default function ProductPurchase({ product }: Props) {
       price: product.price,
     }
   );
+
+  useEffect(() => {
+  setSelectedVariant(
+    product.variants?.[0] ?? {
+      weight: product.weight,
+      price: product.price,
+    }
+  );
+}, [product]);
 
   const handleAdd = () => {
     console.log("Add To Cart clicked", selectedVariant);
