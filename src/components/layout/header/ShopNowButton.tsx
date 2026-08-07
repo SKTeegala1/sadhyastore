@@ -4,13 +4,20 @@ type Props = {
     className?: string;
 };
 
+type ShopNowButtonProps = {
+    className?: string;
+    onNavigate?: () => void;
+};
+
 export default function ShopNowButton({
     className = "",
-}: Props) {
+    onNavigate,
+}: ShopNowButtonProps) {
   return (
     <Link
       to="/"
       hash="shop"
+      onClick={onNavigate}
       className={`inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-primary-foreground text-sm font-semibold hover:scale-105 transition ${className}`}
       style={{ background: "var(--gradient-hero)" }}
     >

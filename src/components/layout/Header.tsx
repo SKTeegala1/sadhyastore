@@ -11,13 +11,15 @@ import MobileMenu from "./header/MobileMenu";
 function Header() {
 const [mobileMenuOpen, setMobileMenuOpen] =
     useState(false);
-
+// backdrop-blur-md
   return (
-    <header className="sticky top-0 z-30 backdrop-blur-md bg-background/80 border-b">
+    <header className="sticky top-0 z-30  bg-background/80 border-b">
       <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
         <HeaderLogo />
        <HeaderNav />
-        <HeaderActions />
+        <HeaderActions
+    onNavigate={() => setMobileMenuOpen(false)}
+/>
         <MobileMenuButton
     onClick={() => setMobileMenuOpen(true)}
 />

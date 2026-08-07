@@ -64,7 +64,7 @@ export default function FloatingCart() {
         ref={cartRef}
         onClick={() => setOpen(true)}
         aria-label="Open cart"
-        className={`fixed bottom-6 right-6 z-40 h-16 w-16 rounded-full grid place-items-center text-primary-foreground shadow-2xl transition-transform hover:scale-110 ${animBump ? "animate-cart-bounce" : ""}`}
+        className={`fixed bottom-6 right-6 z-20 h-16 w-16 rounded-full grid place-items-center text-primary-foreground shadow-2xl transition-transform hover:scale-110 ${animBump ? "animate-cart-bounce" : ""}`}
         style={{ background: "var(--gradient-hero)", boxShadow: "var(--shadow-warm)" }}
       >
         <ShoppingBag className="w-7 h-7" />

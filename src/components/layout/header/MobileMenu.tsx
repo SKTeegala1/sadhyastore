@@ -27,7 +27,7 @@ export default function MobileMenu({
 
   return (
     <div
-    className={`fixed inset-0 z-50 transition-all duration-300
+    className={`fixed inset-0 z-[9999] transition-all duration-300
         ${
             open
                 ? "visible pointer-events-auto"
@@ -43,12 +43,18 @@ export default function MobileMenu({
 />
 
       {/* Drawer */}
-     <div
-        className={`absolute right-0 top-0 h-full w-80 flex flex-col shadow-2xl
+    <div
+ className={`absolute right-0 top-0 h-full w-80
+        z-[10000]
+        flex flex-col
+        shadow-2xl
+        border-l border-primary/10
         transform transition-transform duration-300 ease-in-out
         ${open ? "translate-x-0" : "translate-x-full"}`}
-        style={{ background: "#ffffff" }}
-        >
+  style={{
+    background: "linear-gradient(180deg, #FFFDF8 0%, #FFF7ED 100%)",
+  }}
+>
         {/* Header */}
         <div className="flex items-center justify-between p-5 border-b">
           <h2 className="font-display text-xl font-bold text-secondary">
@@ -84,7 +90,9 @@ export default function MobileMenu({
 
         {/* Search */}
         <div className="border-t p-5">
-          <SearchBar />
+          <SearchBar
+    onNavigate={onClose}
+/>
         </div>
 
         {/* Spacer */}
@@ -93,7 +101,7 @@ export default function MobileMenu({
         {/* Footer Button */}
         <div className="border-t p-5">
 
-          <ShopNowButton className="inline-flex w-full justify-center" />
+          <ShopNowButton className="inline-flex w-full justify-center" onNavigate={onClose} />
 
         </div>
 

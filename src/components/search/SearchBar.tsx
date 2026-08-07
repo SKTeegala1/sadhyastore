@@ -6,9 +6,13 @@ import { Product } from "@/lib/cart";
 import { useEffect, useRef ,useMemo} from "react";
 
 
+type SearchBarProps = {
+    onNavigate?: () => void;
+};
 
-
-export default function SearchBar() {
+export default function SearchBar({
+    onNavigate,
+}: SearchBarProps) {
     const navigate = useNavigate();
     const [query, setQuery] = useState("");
     const [selectedIndex, setSelectedIndex] = useState(-1);
@@ -68,6 +72,7 @@ const handleProductClick = (
     product: Product
 ) => {
 
+    onNavigate?.();
     navigate({
 
         to: "/product/$id",
