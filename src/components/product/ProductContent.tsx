@@ -37,7 +37,7 @@ export default function ProductContent({ product }: Props) {
 
       {/* Benefits */}
 
-      <div className="rounded-3xl border bg-card shadow-sm p-8">
+      {/* <div className="rounded-3xl border bg-card shadow-sm p-8">
 
         <div className="flex items-center gap-3 mb-6">
           <div className="rounded-full bg-green-100 p-3">
@@ -67,11 +67,11 @@ export default function ProductContent({ product }: Props) {
 
         </div>
 
-      </div>
+      </div> */}
 
       {/* Nutrition Facts */}
 
-<div className="rounded-3xl border bg-card shadow-sm p-8">
+{/* <div className="rounded-3xl border bg-card shadow-sm p-8">
 
   <div className="flex items-center gap-3 mb-6">
 
@@ -107,7 +107,7 @@ export default function ProductContent({ product }: Props) {
 
   </div>
 
-</div>
+</div> */}
 
 {/* Storage & Delivery */}
 
@@ -115,7 +115,7 @@ export default function ProductContent({ product }: Props) {
 
   {/* Storage */}
 
-  <div className="rounded-3xl border bg-card shadow-sm p-8">
+  {/* <div className="rounded-3xl border bg-card shadow-sm p-8">
 
     <div className="flex items-center gap-3 mb-6">
 
@@ -152,11 +152,11 @@ export default function ProductContent({ product }: Props) {
 
     </div>
 
-  </div>
+  </div> */}
 
   {/* Delivery */}
 
-  <div className="rounded-3xl border bg-card shadow-sm p-8">
+  {/* <div className="rounded-3xl border bg-card shadow-sm p-8">
 
     <div className="flex items-center gap-3 mb-6">
 
@@ -193,7 +193,7 @@ export default function ProductContent({ product }: Props) {
 
     </div>
 
-  </div>
+  </div> */}
 
 </div>
 

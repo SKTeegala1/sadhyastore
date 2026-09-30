@@ -61,6 +61,7 @@ export type Product = {
   reviews: number;
 
   badge?: string;
+  isOffer?: boolean;
 };
 
 export type CartItem = Product & {

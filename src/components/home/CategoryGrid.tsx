@@ -1,5 +1,5 @@
 import { useNavigate } from "@tanstack/react-router";
-import { CATEGORIES } from "@/data/products";
+import { CATEGORIES, CATEGORY_IDS } from "@/data/products";
 
 export default function CategoryGrid({
   selectedCategoryId,
@@ -35,7 +35,7 @@ const handleCategoryClick = (id: number | null) => {
 
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
 
-        {CATEGORIES.map((c) => (
+        {CATEGORIES.map((c) => c.id != CATEGORY_IDS.OFFER_ZONE && (
           <button
             key={c.id}
             onClick={() => handleCategoryClick(c.id)}

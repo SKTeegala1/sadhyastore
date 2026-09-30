@@ -21,2956 +21,870 @@ export const CATEGORY_IDS = {
   DEHYDRATED_FRUITS: 10,
   SPICES: 11,
   GIFT_BOXES: 12,
+  OFFER_ZONE: 13,
 } as const;
 
+/* ------------------------------------------------------------------ */
+/* Helpers (edit prices/weights only inside PRODUCTS below)            */
+/* ------------------------------------------------------------------ */
+
+// Nutrition per 100g: energy (kcal), protein, carbs, fat, fiber (g), calcium, iron (mg)
+const nutrition = (
+  energy: number,
+  protein: number,
+  carbs: number,
+  fat: number,
+  fiber: number,
+  calcium: number,
+  iron: number
+) => ({
+  servingSize: "100g",
+  items: [
+    { name: "Energy", value: energy, unit: "kcal" },
+    { name: "Protein", value: protein, unit: "g" },
+    { name: "Carbohydrates", value: carbs, unit: "g" },
+    { name: "Fat", value: fat, unit: "g" },
+    { name: "Fiber", value: fiber, unit: "g" },
+    { name: "Calcium", value: calcium, unit: "mg" },
+    { name: "Iron", value: iron, unit: "mg" },
+  ],
+});
+
+const STORAGE_NUTS = [
+  "Store in a cool, dry place.",
+  "Keep in an airtight container after opening.",
+  "Refrigerate in humid weather for longer freshness.",
+];
+const STORAGE_DRIED = [
+  "Store in a cool, dry place away from sunlight.",
+  "Reseal the pack tightly after every use.",
+  "Refrigerate in humid weather to keep the fruit soft.",
+];
+const STORAGE_SPICE = [
+  "Store in an airtight jar away from moisture.",
+  "Keep away from direct sunlight and heat.",
+  "Always use a dry spoon.",
+];
+const STORAGE_SNACK = [
+  "Store in a cool, dry place.",
+  "Transfer to an airtight container after opening.",
+  "Consume within 30 days of opening for best crunch.",
+];
+const STORAGE_GIFT = [
+  "Store in a cool, dry place.",
+  "Keep the box closed and away from sunlight.",
+  "Refrigerate opened items in an airtight container.",
+];
+
+const DELIVERY_STD = [
+  "Ships within 24 hours",
+  "Vacuum packed for freshness",
+  "Tamper-proof packaging",
+  "Pan India delivery",
+];
+const DELIVERY_GIFT = [
+  "Ships within 24 hours",
+  "Premium gift packaging",
+  "Safe, padded shipping",
+  "Pan India delivery",
+];
+
+/* ------------------------------------------------------------------ */
+/* PRODUCTS (child) — top-level price/weight = first variant           */
+/* ------------------------------------------------------------------ */
+
 const PRODUCTS: Product[] = [
-
+  // ============================ Cashew ============================
   {
-    id: "cashew-premium",
-
-    categoryId: CATEGORY_IDS.CASHEW,
-
-    name: "Premium W240 Cashew",
-
-    price: 349,
-
-    weight: "250g",
-
-    image: cashew,
-    images: [
-    cashew,
-    almond,
-    pistachio,
-    giftbox,
-],
-
+    id: "cashew-w210", categoryId: CATEGORY_IDS.CASHEW, name: "Jumbo W210 Cashew", price: 459, weight: "250g",
+    image: cashew, images: [cashew, cashew, cashew, cashew],
+    tagline: "Extra large, extra crunchy cashews",
+    variants: [{ weight: "250g", price: 459 }, { weight: "500g", price: 899 }, { weight: "1kg", price: 1749 }],
+    description: "Jumbo W210 cashews are the largest whole grade, hand-selected for their creamy taste and snappy bite. Ideal for gifting, festive sweets and rich gravies.",
+    benefits: ["Largest whole cashew grade", "Rich in healthy fats", "Good source of magnesium", "No artificial preservatives"],
+    nutrition: nutrition(553, 18, 30, 44, 3, 37, 6),
+    storage: STORAGE_NUTS, delivery: DELIVERY_STD,
+    rating: 4.9, reviews: 96, badge: "Premium",
+  },
+  {
+    id: "cashew-premium", categoryId: CATEGORY_IDS.CASHEW, name: "Premium W240 Cashew", price: 349, weight: "250g",
+    image: cashew, images: [cashew, cashew, cashew, cashew],
     tagline: "Buttery & crunchy whole cashews",
-
-    variants: [
-        {
-            weight: "250g",
-            price: 349,
-        },
-        {
-            weight: "500g",
-            price: 689,
-        },
-        {
-            weight: "1kg",
-            price: 1349,
-        },
-    ],
-
-    description:
-        " Premium W240 Cashew Premium W240 whole cashews carefully selected for their rich taste, crunchy texture, and natural freshness. Vacuum packed to preserve quality and flavour.",
-
-    benefits: [
-        "Premium W240 Cashew",
-        "Rich in Protein",
-        "Heart Healthy",
-        "High in Magnesium",
-        "No Artificial Preservatives",
-    ],
-
-    nutrition: {
-
-    servingSize: "100g",
-
-    items: [
-
-        {
-            name: "Energy",
-            value: 553,
-            unit: "kcal",
-        },
-
-        {
-            name: "Protein",
-            value: 18,
-            unit: "g",
-        },
-
-        {
-            name: "Carbohydrates",
-            value: 30,
-            unit: "g",
-        },
-
-        {
-            name: "Fat",
-            value: 44,
-            unit: "g",
-        },
-
-        {
-            name: "Fiber",
-            value: 3,
-            unit: "g",
-        },
-
-        {
-            name: "Calcium",
-            value: 37,
-            unit: "mg",
-        },
-
-        {
-            name: "Iron",
-            value: 6,
-            unit: "mg",
-        },
-
-    ],
-},
-
-    storage: [
-        "Premium W240 Cashew",
-        "Store in a cool & dry place.",
-        "Keep in an airtight container after opening.",
-    ],
-
-    delivery: [
-        "Premium W240 Cashew",
-        "Ships within 24 Hours",
-        "Vacuum Packed",
-        "Pan India Delivery",
-    ],
-
-    rating: 4.9,
-
-    reviews: 128,
-
-    badge: "Best Seller",
-},
-  // Cashew
-  {
-    id: "cashew-w240", categoryId: CATEGORY_IDS.CASHEW, price: 349,
-    weight: "250g", name: "Premium Kaju W240", image: cashew, tagline: "Large premium whole cashews", variants: [{ weight: "250g", price: 500 }, { weight: "500g", price: 799 }, { weight: "1kg", price: 1499 }],
-    description: "",
-    benefits: [],
-    nutrition: {
-
-    servingSize: "100g",
-
-    items: [
-
-        {
-            name: "Energy",
-            value: 553,
-            unit: "kcal",
-        },
-
-        {
-            name: "Protein",
-            value: 18,
-            unit: "g",
-        },
-
-        {
-            name: "Carbohydrates",
-            value: 30,
-            unit: "g",
-        },
-
-        {
-            name: "Fat",
-            value: 44,
-            unit: "g",
-        },
-
-        {
-            name: "Fiber",
-            value: 3,
-            unit: "g",
-        },
-
-        {
-            name: "Calcium",
-            value: 37,
-            unit: "mg",
-        },
-
-        {
-            name: "Iron",
-            value: 6,
-            unit: "mg",
-        },
-
-    ],
-},
-    storage: [],
-    delivery: [],
-    rating: 0,
-    reviews: 0
+    variants: [{ weight: "250g", price: 349 }, { weight: "500g", price: 689 }, { weight: "1kg", price: 1349 }],
+    description: "Premium W240 whole cashews carefully selected for their rich taste, crunchy texture and natural freshness. Vacuum packed to preserve quality and flavour.",
+    benefits: ["Rich in protein", "Heart healthy", "High in magnesium", "No artificial preservatives"],
+    nutrition: nutrition(553, 18, 30, 44, 3, 37, 6),
+    storage: STORAGE_NUTS, delivery: DELIVERY_STD,
+    rating: 4.9, reviews: 128, badge: "Best Seller",
   },
   {
-    id: "cashew-w320", categoryId: CATEGORY_IDS.CASHEW, price: 299, weight: "250g", name: "Premium Kaju W320", image: cashew, tagline: "Everyday crunchy goodness", variants: [{ weight: "500g", price: 699 }, { weight: "1kg", price: 1299 }],
-    description: "",
-    benefits: [],
-    nutrition: {
-
-    servingSize: "100g",
-
-    items: [
-
-        {
-            name: "Energy",
-            value: 553,
-            unit: "kcal",
-        },
-
-        {
-            name: "Protein",
-            value: 18,
-            unit: "g",
-        },
-
-        {
-            name: "Carbohydrates",
-            value: 30,
-            unit: "g",
-        },
-
-        {
-            name: "Fat",
-            value: 44,
-            unit: "g",
-        },
-
-        {
-            name: "Fiber",
-            value: 3,
-            unit: "g",
-        },
-
-        {
-            name: "Calcium",
-            value: 37,
-            unit: "mg",
-        },
-
-        {
-            name: "Iron",
-            value: 6,
-            unit: "mg",
-        },
-
-    ],
-},
-    storage: [],
-    delivery: [],
-    rating: 0,
-    reviews: 0
+    id: "cashew-w320", categoryId: CATEGORY_IDS.CASHEW, name: "Premium Kaju W320", price: 299, weight: "250g",
+    image: cashew, images: [cashew, cashew, cashew, cashew],
+    tagline: "Everyday crunchy goodness",
+    variants: [{ weight: "250g", price: 299 }, { weight: "500g", price: 579 }, { weight: "1kg", price: 1129 }],
+    description: "W320 is the everyday whole cashew grade with the same great taste at a friendlier price. A smart pick for daily snacking and home cooking.",
+    benefits: ["Great value everyday grade", "Good source of protein", "Rich in minerals", "Naturally cholesterol free"],
+    nutrition: nutrition(553, 18, 30, 44, 3, 37, 6),
+    storage: STORAGE_NUTS, delivery: DELIVERY_STD,
+    rating: 4.7, reviews: 142,
   },
   {
-    id: "cashew-salted", categoryId: CATEGORY_IDS.CASHEW, price: 299, weight: "250g", name: "Roasted Salted Cashews", 
-    image: cashew, 
-    images: [
-        cashew,
-        cashew,
-        cashew,
-        cashew,
-    ],
-    tagline: "Perfect tea-time snack", variants: [{ weight: "500g", price: 699 }, { weight: "1kg", price: 1299 }],
-    description: "",
-    benefits: [],
-      nutrition: {
-
-    servingSize: "100g",
-
-    items: [
-
-        {
-            name: "Energy",
-            value: 553,
-            unit: "kcal",
-        },
-
-        {
-            name: "Protein",
-            value: 18,
-            unit: "g",
-        },
-
-        {
-            name: "Carbohydrates",
-            value: 30,
-            unit: "g",
-        },
-
-        {
-            name: "Fat",
-            value: 44,
-            unit: "g",
-        },
-
-        {
-            name: "Fiber",
-            value: 3,
-            unit: "g",
-        },
-
-        {
-            name: "Calcium",
-            value: 37,
-            unit: "mg",
-        },
-
-        {
-            name: "Iron",
-            value: 6,
-            unit: "mg",
-        },
-
-    ],
-},
-    storage: [],
-    delivery: [],
-    rating: 0,
-    reviews: 0
-  },
-
-  // Almond
-  {
-    id: "almond-california", categoryId: CATEGORY_IDS.ALMOND, price: 399, weight: "250g", name: "California Almonds",
-     image: almond,
-     images: [
-        almond,
-        almond,
-        almond,
-        almond,
-     ],
-     tagline: "Rich in Vitamin E", variants: [{ weight: "500g", price: 699 }, { weight: "1kg", price: 1299 }],
-    description: "",
-    benefits: [],
-   nutrition: {
-
-    servingSize: "100g",
-
-    items: [
-
-        {
-            name: "Energy",
-            value: 553,
-            unit: "kcal",
-        },
-
-        {
-            name: "Protein",
-            value: 18,
-            unit: "g",
-        },
-
-        {
-            name: "Carbohydrates",
-            value: 30,
-            unit: "g",
-        },
-
-        {
-            name: "Fat",
-            value: 44,
-            unit: "g",
-        },
-
-        {
-            name: "Fiber",
-            value: 3,
-            unit: "g",
-        },
-
-        {
-            name: "Calcium",
-            value: 37,
-            unit: "mg",
-        },
-
-        {
-            name: "Iron",
-            value: 6,
-            unit: "mg",
-        },
-
-    ],
-},
-    storage: [],
-    delivery: [],
-    rating: 0,
-    reviews: 0
+    id: "cashew-salted", categoryId: CATEGORY_IDS.CASHEW, name: "Roasted Salted Cashews", price: 319, weight: "250g",
+    image: cashew, images: [cashew, cashew, cashew, cashew],
+    tagline: "Perfect tea-time snack",
+    variants: [{ weight: "250g", price: 319 }, { weight: "500g", price: 619 }, { weight: "1kg", price: 1199 }],
+    description: "Whole cashews dry roasted to a golden crunch and lightly seasoned with salt. Ready to eat straight from the pack.",
+    benefits: ["Ready-to-eat snack", "Lightly salted", "Energy boosting", "Dry roasted, not fried"],
+    nutrition: nutrition(574, 15, 32, 46, 3, 40, 6),
+    storage: STORAGE_NUTS, delivery: DELIVERY_STD,
+    rating: 4.8, reviews: 117,
   },
   {
-    id: "almond-california2", categoryId: CATEGORY_IDS.ALMOND, price: 399, weight: "250g", name: "California Almonds",
-     image: almond,
-     images: [
-        almond,
-        almond,
-        almond,
-        almond,
-     ],
-     tagline: "Rich in Vitamin E", variants: [{ weight: "500g", price: 699 }, { weight: "1kg", price: 1299 }],
-    description: "",
-    benefits: [],
-   nutrition: {
-
-    servingSize: "100g",
-
-    items: [
-
-        {
-            name: "Energy",
-            value: 553,
-            unit: "kcal",
-        },
-
-        {
-            name: "Protein",
-            value: 18,
-            unit: "g",
-        },
-
-        {
-            name: "Carbohydrates",
-            value: 30,
-            unit: "g",
-        },
-
-        {
-            name: "Fat",
-            value: 44,
-            unit: "g",
-        },
-
-        {
-            name: "Fiber",
-            value: 3,
-            unit: "g",
-        },
-
-        {
-            name: "Calcium",
-            value: 37,
-            unit: "mg",
-        },
-
-        {
-            name: "Iron",
-            value: 6,
-            unit: "mg",
-        },
-
-    ],
-},
-    storage: [],
-    delivery: [],
-    rating: 0,
-    reviews: 0
-  },
-  {
-    id: "almond-premium", categoryId: CATEGORY_IDS.ALMOND, price: 299, weight: "250g",
-     name: "Premium Badam", 
-     image: almond,
-     images: [
-        almond,
-        almond,
-        almond,
-        almond,
-     ], tagline: "Naturally crunchy & fresh", variants: [{ weight: "250g", price: 299 }, { weight: "500g", price: 599 }],
-    description: "",
-    benefits: [],
-   nutrition: {
-
-    servingSize: "100g",
-
-    items: [
-
-        {
-            name: "Energy",
-            value: 553,
-            unit: "kcal",
-        },
-
-        {
-            name: "Protein",
-            value: 18,
-            unit: "g",
-        },
-
-        {
-            name: "Carbohydrates",
-            value: 30,
-            unit: "g",
-        },
-
-        {
-            name: "Fat",
-            value: 44,
-            unit: "g",
-        },
-
-        {
-            name: "Fiber",
-            value: 3,
-            unit: "g",
-        },
-
-        {
-            name: "Calcium",
-            value: 37,
-            unit: "mg",
-        },
-
-        {
-            name: "Iron",
-            value: 6,
-            unit: "mg",
-        },
-
-    ],
-},
-    storage: [],
-    delivery: [],
-    rating: 0,
-    reviews: 0
-  },
-  {
-    id: "almond-roasted", categoryId: CATEGORY_IDS.ALMOND, price: 299, weight: "250g", name: "Roasted Almonds", 
-    image: almond, 
-    images: [
-        almond,
-        almond,
-        almond,
-        almond,
-     ],tagline: "Lightly roasted perfection", variants: [{ weight: "500g", price: 599 }, { weight: "1kg", price: 1099 }],
-    description: "",
-    benefits: [],
-   nutrition: {
-
-    servingSize: "100g",
-
-    items: [
-
-        {
-            name: "Energy",
-            value: 553,
-            unit: "kcal",
-        },
-
-        {
-            name: "Protein",
-            value: 18,
-            unit: "g",
-        },
-
-        {
-            name: "Carbohydrates",
-            value: 30,
-            unit: "g",
-        },
-
-        {
-            name: "Fat",
-            value: 44,
-            unit: "g",
-        },
-
-        {
-            name: "Fiber",
-            value: 3,
-            unit: "g",
-        },
-
-        {
-            name: "Calcium",
-            value: 37,
-            unit: "mg",
-        },
-
-        {
-            name: "Iron",
-            value: 6,
-            unit: "mg",
-        },
-
-    ],
-},
-    storage: [],
-    delivery: [],
-    rating: 0,
-    reviews: 0
+    id: "cashew-masala", categoryId: CATEGORY_IDS.CASHEW, name: "Masala Roasted Cashews", price: 329, weight: "250g",
+    image: cashew, images: [cashew, cashew, cashew, cashew],
+    tagline: "Spicy, tangy roasted kaju",
+    variants: [{ weight: "250g", price: 329 }, { weight: "500g", price: 639 }, { weight: "1kg", price: 1239 }],
+    description: "Crunchy cashews tossed in a bold Indian masala blend with a hint of chilli and chaat spice. A party favourite that disappears fast.",
+    benefits: ["Bold masala flavour", "Crunchy and satisfying", "Great for parties", "Made with whole cashews"],
+    nutrition: nutrition(570, 16, 31, 45, 3, 38, 6),
+    storage: STORAGE_NUTS, delivery: DELIVERY_STD,
+    rating: 4.6, reviews: 64,
   },
 
-  // Pista
+  // ============================ Almond ============================
   {
-    id: "pista-salted", categoryId: CATEGORY_IDS.PISTACHIO, price: 399, weight: "250g",
-     name: "Salted Roasted Pista", 
-     image: pistachio,
-     images: [
-        pistachio,
-        pistachio,
-        pistachio,
-        pistachio,
-     ],
-     tagline: "Premium crunchy pistachios", variants: [{ weight: "500g", price: 899 }, { weight: "1kg", price: 1699 }],
-    description: "",
-    benefits: [],
-  nutrition: {
-
-    servingSize: "100g",
-
-    items: [
-
-        {
-            name: "Energy",
-            value: 553,
-            unit: "kcal",
-        },
-
-        {
-            name: "Protein",
-            value: 18,
-            unit: "g",
-        },
-
-        {
-            name: "Carbohydrates",
-            value: 30,
-            unit: "g",
-        },
-
-        {
-            name: "Fat",
-            value: 44,
-            unit: "g",
-        },
-
-        {
-            name: "Fiber",
-            value: 3,
-            unit: "g",
-        },
-
-        {
-            name: "Calcium",
-            value: 37,
-            unit: "mg",
-        },
-
-        {
-            name: "Iron",
-            value: 6,
-            unit: "mg",
-        },
-
-    ],
-},
-    storage: [],
-    delivery: [],
-    rating: 0,
-    reviews: 0
+    id: "almond-california", categoryId: CATEGORY_IDS.ALMOND, name: "California Almonds", price: 349, weight: "250g",
+    image: almond, images: [almond, almond, almond, almond],
+    tagline: "Rich in Vitamin E",
+    variants: [{ weight: "250g", price: 349 }, { weight: "500g", price: 679 }, { weight: "1kg", price: 1299 }],
+    description: "Classic California almonds with a sweet, mild flavour and satisfying crunch. A daily staple for soaking, snacking and baking.",
+    benefits: ["Excellent source of Vitamin E", "Supports heart health", "High in fibre", "Great for soaking"],
+    nutrition: nutrition(579, 21, 22, 50, 12, 269, 4),
+    storage: STORAGE_NUTS, delivery: DELIVERY_STD,
+    rating: 4.8, reviews: 210, badge: "Best Seller",
   },
   {
-    id: "pista-salted1", categoryId: CATEGORY_IDS.PISTACHIO, price: 399, weight: "250g",
-     name: "Salted Roasted Pista", 
-     image: pistachio,
-     images: [
-        pistachio,
-        pistachio,
-        pistachio,
-        pistachio,
-     ],
-     tagline: "Premium crunchy pistachios", variants: [{ weight: "500g", price: 899 }, { weight: "1kg", price: 1699 }],
-    description: "",
-    benefits: [],
-  nutrition: {
-
-    servingSize: "100g",
-
-    items: [
-
-        {
-            name: "Energy",
-            value: 553,
-            unit: "kcal",
-        },
-
-        {
-            name: "Protein",
-            value: 18,
-            unit: "g",
-        },
-
-        {
-            name: "Carbohydrates",
-            value: 30,
-            unit: "g",
-        },
-
-        {
-            name: "Fat",
-            value: 44,
-            unit: "g",
-        },
-
-        {
-            name: "Fiber",
-            value: 3,
-            unit: "g",
-        },
-
-        {
-            name: "Calcium",
-            value: 37,
-            unit: "mg",
-        },
-
-        {
-            name: "Iron",
-            value: 6,
-            unit: "mg",
-        },
-
-    ],
-},
-    storage: [],
-    delivery: [],
-    rating: 0,
-    reviews: 0
+    id: "almond-premium", categoryId: CATEGORY_IDS.ALMOND, name: "Premium Badam", price: 399, weight: "250g",
+    image: almond, images: [almond, almond, almond, almond],
+    tagline: "Naturally crunchy & fresh",
+    variants: [{ weight: "250g", price: 399 }, { weight: "500g", price: 779 }, { weight: "1kg", price: 1499 }],
+    description: "Large, plump premium almonds sorted for uniform size and freshness. Crisp, nutty and perfect for gifting or daily nutrition.",
+    benefits: ["Bigger, plumper kernels", "Protein rich", "Supports brain health", "Sorted for quality"],
+    nutrition: nutrition(579, 21, 22, 50, 12, 269, 4),
+    storage: STORAGE_NUTS, delivery: DELIVERY_STD,
+    rating: 4.8, reviews: 155, badge: "Premium",
   },
   {
-    id: "pista-salted2", categoryId: CATEGORY_IDS.PISTACHIO, price: 399, weight: "250g",
-     name: "Salted Roasted Pista", 
-     image: pistachio,
-     images: [
-        pistachio,
-        pistachio,
-        pistachio,
-        pistachio,
-     ],
-     tagline: "Premium crunchy pistachios", variants: [{ weight: "500g", price: 899 }, { weight: "1kg", price: 1699 }],
-    description: "",
-    benefits: [],
-  nutrition: {
-
-    servingSize: "100g",
-
-    items: [
-
-        {
-            name: "Energy",
-            value: 553,
-            unit: "kcal",
-        },
-
-        {
-            name: "Protein",
-            value: 18,
-            unit: "g",
-        },
-
-        {
-            name: "Carbohydrates",
-            value: 30,
-            unit: "g",
-        },
-
-        {
-            name: "Fat",
-            value: 44,
-            unit: "g",
-        },
-
-        {
-            name: "Fiber",
-            value: 3,
-            unit: "g",
-        },
-
-        {
-            name: "Calcium",
-            value: 37,
-            unit: "mg",
-        },
-
-        {
-            name: "Iron",
-            value: 6,
-            unit: "mg",
-        },
-
-    ],
-},
-    storage: [],
-    delivery: [],
-    rating: 0,
-    reviews: 0
+    id: "almond-roasted", categoryId: CATEGORY_IDS.ALMOND, name: "Roasted Almonds", price: 369, weight: "250g",
+    image: almond, images: [almond, almond, almond, almond],
+    tagline: "Lightly roasted perfection",
+    variants: [{ weight: "250g", price: 369 }, { weight: "500g", price: 699 }, { weight: "1kg", price: 1349 }],
+    description: "Whole almonds slow roasted to bring out a deep, toasty flavour. Enjoy them plain as a light, crunchy snack.",
+    benefits: ["Ready-to-eat", "Deep roasted flavour", "High in fibre", "No added oil"],
+    nutrition: nutrition(590, 21, 21, 52, 12, 260, 4),
+    storage: STORAGE_NUTS, delivery: DELIVERY_STD,
+    rating: 4.7, reviews: 98,
   },
   {
-    id: "pista-premium", categoryId: CATEGORY_IDS.PISTACHIO, price: 469, weight: "250g",
-     name: "Premium Pista", 
-     image: pistachio,
-     images: [
-        pistachio,
-        pistachio,
-        pistachio,
-        pistachio,
-     ],
-     tagline: "Freshly selected kernels", variants: [{ weight: "250g", price: 469 }, { weight: "500g", price: 899 }],
-    description: "",
-    benefits: [],
-   nutrition: {
-
-    servingSize: "100g",
-
-    items: [
-
-        {
-            name: "Energy",
-            value: 553,
-            unit: "kcal",
-        },
-
-        {
-            name: "Protein",
-            value: 18,
-            unit: "g",
-        },
-
-        {
-            name: "Carbohydrates",
-            value: 30,
-            unit: "g",
-        },
-
-        {
-            name: "Fat",
-            value: 44,
-            unit: "g",
-        },
-
-        {
-            name: "Fiber",
-            value: 3,
-            unit: "g",
-        },
-
-        {
-            name: "Calcium",
-            value: 37,
-            unit: "mg",
-        },
-
-        {
-            name: "Iron",
-            value: 6,
-            unit: "mg",
-        },
-
-    ],
-},
-    storage: [],
-    delivery: [],
-    rating: 0,
-    reviews: 0
+    id: "almond-mamra", categoryId: CATEGORY_IDS.ALMOND, name: "Mamra Almonds", price: 799, weight: "250g",
+    image: almond, images: [almond, almond, almond, almond],
+    tagline: "Rare, oil-rich Mamra badam",
+    variants: [{ weight: "250g", price: 799 }, { weight: "500g", price: 1549 }],
+    description: "Mamra is the rarest and most nutrient dense almond variety, with a naturally higher oil content. Known for its rich, sweet taste and dense texture.",
+    benefits: ["Higher natural oil content", "Dense in nutrients", "Rich, sweet flavour", "Traditional wellness favourite"],
+    nutrition: nutrition(610, 22, 19, 54, 13, 270, 4),
+    storage: STORAGE_NUTS, delivery: DELIVERY_STD,
+    rating: 4.9, reviews: 73, badge: "Premium",
   },
   {
-    id: "pista-jumbo", categoryId: CATEGORY_IDS.PISTACHIO, price: 949, weight: "250g",
-    name: "Jumbo Pista", 
-    image: pistachio,
-    images: [
-       pistachio,
-       pistachio,
-       pistachio,
-       pistachio,
-    ],
-    tagline: "Extra large premium nuts", variants: [{ weight: "500g", price: 949 }, { weight: "1kg", price: 1799 }],
-    description: "",
-    benefits: [],
-  nutrition: {
-
-    servingSize: "100g",
-
-    items: [
-
-        {
-            name: "Energy",
-            value: 553,
-            unit: "kcal",
-        },
-
-        {
-            name: "Protein",
-            value: 18,
-            unit: "g",
-        },
-
-        {
-            name: "Carbohydrates",
-            value: 30,
-            unit: "g",
-        },
-
-        {
-            name: "Fat",
-            value: 44,
-            unit: "g",
-        },
-
-        {
-            name: "Fiber",
-            value: 3,
-            unit: "g",
-        },
-
-        {
-            name: "Calcium",
-            value: 37,
-            unit: "mg",
-        },
-
-        {
-            name: "Iron",
-            value: 6,
-            unit: "mg",
-        },
-
-    ],
-},
-    storage: [],
-    delivery: [],
-    rating: 0,
-    reviews: 0
+    id: "almond-sliced", categoryId: CATEGORY_IDS.ALMOND, name: "Sliced Almonds", price: 449, weight: "250g",
+    image: almond, images: [almond, almond, almond, almond],
+    tagline: "Thin slices for baking & topping",
+    variants: [{ weight: "250g", price: 449 }, { weight: "500g", price: 869 }],
+    description: "Thinly sliced almonds ready to use in desserts, cakes, oats and salads. Adds a light crunch and nutty aroma to any dish.",
+    benefits: ["Ready-to-use slices", "Perfect for baking", "Great on desserts and oats", "Naturally gluten free"],
+    nutrition: nutrition(579, 21, 22, 50, 12, 269, 4),
+    storage: STORAGE_NUTS, delivery: DELIVERY_STD,
+    rating: 4.6, reviews: 41, badge: "New",
   },
 
-  // Anjeer
+  // ============================ Pistachio ============================
   {
-    id: "anjeer-afghan", categoryId: CATEGORY_IDS.ANJEER, price: 799, 
-    weight: "250g", name: "Afghan Anjeer", 
-    image: fig,
-    images: [
-       fig,
-       fig,
-       fig,
-       fig,
-    ],
-    tagline: "Naturally sweet dry figs", variants: [{ weight: "500g", price: 799 }],
-    description: "",
-    benefits: [],
-   nutrition: {
-
-    servingSize: "100g",
-
-    items: [
-
-        {
-            name: "Energy",
-            value: 553,
-            unit: "kcal",
-        },
-
-        {
-            name: "Protein",
-            value: 18,
-            unit: "g",
-        },
-
-        {
-            name: "Carbohydrates",
-            value: 30,
-            unit: "g",
-        },
-
-        {
-            name: "Fat",
-            value: 44,
-            unit: "g",
-        },
-
-        {
-            name: "Fiber",
-            value: 3,
-            unit: "g",
-        },
-
-        {
-            name: "Calcium",
-            value: 37,
-            unit: "mg",
-        },
-
-        {
-            name: "Iron",
-            value: 6,
-            unit: "mg",
-        },
-
-    ],
-},
-    storage: [],
-    delivery: [],
-    rating: 0,
-    reviews: 0
+    id: "pista-salted", categoryId: CATEGORY_IDS.PISTACHIO, name: "Salted Roasted Pista", price: 449, weight: "250g",
+    image: pistachio, images: [pistachio, pistachio, pistachio, pistachio],
+    tagline: "Premium crunchy pistachios",
+    variants: [{ weight: "250g", price: 449 }, { weight: "500g", price: 899 }, { weight: "1kg", price: 1699 }],
+    description: "Shell-on pistachios roasted and lightly salted for a perfectly crunchy bite. Naturally split shells make them easy to open.",
+    benefits: ["Ready-to-eat", "Naturally split shells", "Good source of protein", "Satisfying mindful snack"],
+    nutrition: nutrition(580, 20, 28, 46, 10, 110, 4),
+    storage: STORAGE_NUTS, delivery: DELIVERY_STD,
+    rating: 4.8, reviews: 187, badge: "Best Seller",
   },
   {
-    id: "anjeer-afghan1", categoryId: CATEGORY_IDS.ANJEER, price: 799, 
-    weight: "250g", name: "Afghan Anjeer", 
-    image: fig,
-    images: [
-       fig,
-       fig,
-       fig,
-       fig,
-    ],
-    tagline: "Naturally sweet dry figs", variants: [{ weight: "500g", price: 799 }],
-    description: "",
-    benefits: [],
-   nutrition: {
-
-    servingSize: "100g",
-
-    items: [
-
-        {
-            name: "Energy",
-            value: 553,
-            unit: "kcal",
-        },
-
-        {
-            name: "Protein",
-            value: 18,
-            unit: "g",
-        },
-
-        {
-            name: "Carbohydrates",
-            value: 30,
-            unit: "g",
-        },
-
-        {
-            name: "Fat",
-            value: 44,
-            unit: "g",
-        },
-
-        {
-            name: "Fiber",
-            value: 3,
-            unit: "g",
-        },
-
-        {
-            name: "Calcium",
-            value: 37,
-            unit: "mg",
-        },
-
-        {
-            name: "Iron",
-            value: 6,
-            unit: "mg",
-        },
-
-    ],
-},
-    storage: [],
-    delivery: [],
-    rating: 0,
-    reviews: 0
+    id: "pista-premium", categoryId: CATEGORY_IDS.PISTACHIO, name: "Premium Pista", price: 469, weight: "250g",
+    image: pistachio, images: [pistachio, pistachio, pistachio, pistachio],
+    tagline: "Freshly selected pistachios",
+    variants: [{ weight: "250g", price: 469 }, { weight: "500g", price: 899 }, { weight: "1kg", price: 1749 }],
+    description: "Fresh, plump pistachios selected for colour and taste. Enjoy as a snack or use in sweets, ice creams and biryanis.",
+    benefits: ["Vibrant green kernels", "Rich in antioxidants", "Supports heart health", "Versatile in cooking"],
+    nutrition: nutrition(562, 20, 28, 45, 10, 105, 4),
+    storage: STORAGE_NUTS, delivery: DELIVERY_STD,
+    rating: 4.7, reviews: 112,
   },
   {
-    id: "anjeer-afghan2", categoryId: CATEGORY_IDS.ANJEER, price: 799, 
-    weight: "250g", name: "Afghan Anjeer", 
-    image: fig,
-    images: [
-       fig,
-       fig,
-       fig,
-       fig,
-    ],
-    tagline: "Naturally sweet dry figs", variants: [{ weight: "500g", price: 799 }],
-    description: "",
-    benefits: [],
-   nutrition: {
-
-    servingSize: "100g",
-
-    items: [
-
-        {
-            name: "Energy",
-            value: 553,
-            unit: "kcal",
-        },
-
-        {
-            name: "Protein",
-            value: 18,
-            unit: "g",
-        },
-
-        {
-            name: "Carbohydrates",
-            value: 30,
-            unit: "g",
-        },
-
-        {
-            name: "Fat",
-            value: 44,
-            unit: "g",
-        },
-
-        {
-            name: "Fiber",
-            value: 3,
-            unit: "g",
-        },
-
-        {
-            name: "Calcium",
-            value: 37,
-            unit: "mg",
-        },
-
-        {
-            name: "Iron",
-            value: 6,
-            unit: "mg",
-        },
-
-    ],
-},
-    storage: [],
-    delivery: [],
-    rating: 0,
-    reviews: 0
+    id: "pista-jumbo", categoryId: CATEGORY_IDS.PISTACHIO, name: "Jumbo Pista", price: 499, weight: "250g",
+    image: pistachio, images: [pistachio, pistachio, pistachio, pistachio],
+    tagline: "Extra large premium nuts",
+    variants: [{ weight: "250g", price: 499 }, { weight: "500g", price: 949 }, { weight: "1kg", price: 1799 }],
+    description: "Extra large pistachios with a rich, buttery flavour and a generous bite. Our top grade, great for gifting.",
+    benefits: ["Extra large size", "Buttery, rich flavour", "High in fibre", "Gift-worthy grade"],
+    nutrition: nutrition(562, 20, 28, 45, 10, 105, 4),
+    storage: STORAGE_NUTS, delivery: DELIVERY_STD,
+    rating: 4.9, reviews: 89, badge: "Premium",
   },
   {
-    id: "anjeer-premium", categoryId: CATEGORY_IDS.ANJEER, price: 429, weight: "250g",
-     name: "Premium Dry Figs", 
-     image: fig,
-     images: [
-        fig,
-        fig,
-        fig,
-        fig,
-     ],
-     tagline: "Soft & fibre rich", variants: [{ weight: "250g", price: 429 }],
-    description: "",
-    benefits: [],
-   nutrition: {
-
-    servingSize: "100g",
-
-    items: [
-
-        {
-            name: "Energy",
-            value: 553,
-            unit: "kcal",
-        },
-
-        {
-            name: "Protein",
-            value: 18,
-            unit: "g",
-        },
-
-        {
-            name: "Carbohydrates",
-            value: 30,
-            unit: "g",
-        },
-
-        {
-            name: "Fat",
-            value: 44,
-            unit: "g",
-        },
-
-        {
-            name: "Fiber",
-            value: 3,
-            unit: "g",
-        },
-
-        {
-            name: "Calcium",
-            value: 37,
-            unit: "mg",
-        },
-
-        {
-            name: "Iron",
-            value: 6,
-            unit: "mg",
-        },
-
-    ],
-},
-    storage: [],
-    delivery: [],
-    rating: 0,
-    reviews: 0
-  },
-
-  // Walnut
-  {
-    id: "walnut-light", categoryId: CATEGORY_IDS.WALNUT, price: 749, weight: "250g", name: "Light Walnut Kernels", 
-    image: walnut,
-    images: [
-       walnut,
-       walnut,
-       walnut,
-       walnut,
-    ],
-    tagline: "Healthy omega-3 rich nuts", variants: [{ weight: "500g", price: 749 }],
-    description: "",
-    benefits: [],
-   nutrition: {
-
-    servingSize: "100g",
-
-    items: [
-
-        {
-            name: "Energy",
-            value: 553,
-            unit: "kcal",
-        },
-
-        {
-            name: "Protein",
-            value: 18,
-            unit: "g",
-        },
-
-        {
-            name: "Carbohydrates",
-            value: 30,
-            unit: "g",
-        },
-
-        {
-            name: "Fat",
-            value: 44,
-            unit: "g",
-        },
-
-        {
-            name: "Fiber",
-            value: 3,
-            unit: "g",
-        },
-
-        {
-            name: "Calcium",
-            value: 37,
-            unit: "mg",
-        },
-
-        {
-            name: "Iron",
-            value: 6,
-            unit: "mg",
-        },
-
-    ],
-},
-    storage: [],
-    delivery: [],
-    rating: 0,
-    reviews: 0
+    id: "pista-kernels", categoryId: CATEGORY_IDS.PISTACHIO, name: "Pistachio Kernels (Shelled)", price: 699, weight: "250g",
+    image: pistachio, images: [pistachio, pistachio, pistachio, pistachio],
+    tagline: "Shelled, ready for cooking",
+    variants: [{ weight: "250g", price: 699 }, { weight: "500g", price: 1349 }],
+    description: "Hand-shelled raw pistachio kernels with no shell to crack. Perfect for sweets, kulfi, cakes and garnishing.",
+    benefits: ["No shelling needed", "Ideal for desserts", "Bright natural colour", "Raw and unsalted"],
+    nutrition: nutrition(560, 20, 28, 45, 10, 105, 4),
+    storage: STORAGE_NUTS, delivery: DELIVERY_STD,
+    rating: 4.7, reviews: 52,
   },
   {
-    id: "walnut-premium", categoryId: CATEGORY_IDS.WALNUT, price: 399, weight: "250g", name: "Premium Akhrot",
-    image: walnut,
-    images: [
-       walnut,
-       walnut,
-       walnut,
-       walnut,
-    ],
-    tagline: "Fresh handpicked kernels", variants: [{ weight: "250g", price: 399 }],
-    description: "",
-    benefits: [],
-    nutrition: {
-
-    servingSize: "100g",
-
-    items: [
-
-        {
-            name: "Energy",
-            value: 553,
-            unit: "kcal",
-        },
-
-        {
-            name: "Protein",
-            value: 18,
-            unit: "g",
-        },
-
-        {
-            name: "Carbohydrates",
-            value: 30,
-            unit: "g",
-        },
-
-        {
-            name: "Fat",
-            value: 44,
-            unit: "g",
-        },
-
-        {
-            name: "Fiber",
-            value: 3,
-            unit: "g",
-        },
-
-        {
-            name: "Calcium",
-            value: 37,
-            unit: "mg",
-        },
-
-        {
-            name: "Iron",
-            value: 6,
-            unit: "mg",
-        },
-
-    ],
-},
-    storage: [],
-    delivery: [],
-    rating: 0,
-    reviews: 0
+    id: "pista-unsalted", categoryId: CATEGORY_IDS.PISTACHIO, name: "Plain Roasted Pista", price: 479, weight: "250g",
+    image: pistachio, images: [pistachio, pistachio, pistachio, pistachio],
+    tagline: "Roasted, no added salt",
+    variants: [{ weight: "250g", price: 479 }, { weight: "500g", price: 929 }, { weight: "1kg", price: 1799 }],
+    description: "Shell-on pistachios roasted without any added salt to keep the natural flavour. A clean choice for low-sodium diets.",
+    benefits: ["No added salt", "Natural roasted taste", "Good source of protein", "Heart-friendly snack"],
+    nutrition: nutrition(562, 20, 28, 45, 10, 105, 4),
+    storage: STORAGE_NUTS, delivery: DELIVERY_STD,
+    rating: 4.6, reviews: 38, badge: "New",
   },
 
-  // Dates
+  // ============================ Anjeer ============================
   {
-    id: "dates-ajwa", categoryId: CATEGORY_IDS.DATES, price: 699, weight: "250g", name: "Ajwa Dates", 
-    image: giftbox,
-    images: [
-       giftbox,
-       giftbox,
-       giftbox,
-       giftbox,
-    ],
-    tagline: "Soft premium Arabian dates", variants: [{ weight: "500g", price: 699 }],
-    description: "",
-    benefits: [],
-   nutrition: {
-
-    servingSize: "100g",
-
-    items: [
-
-        {
-            name: "Energy",
-            value: 553,
-            unit: "kcal",
-        },
-
-        {
-            name: "Protein",
-            value: 18,
-            unit: "g",
-        },
-
-        {
-            name: "Carbohydrates",
-            value: 30,
-            unit: "g",
-        },
-
-        {
-            name: "Fat",
-            value: 44,
-            unit: "g",
-        },
-
-        {
-            name: "Fiber",
-            value: 3,
-            unit: "g",
-        },
-
-        {
-            name: "Calcium",
-            value: 37,
-            unit: "mg",
-        },
-
-        {
-            name: "Iron",
-            value: 6,
-            unit: "mg",
-        },
-
-    ],
-},
-    storage: [],
-    delivery: [],
-    rating: 0,
-    reviews: 0
+    id: "anjeer-afghan", categoryId: CATEGORY_IDS.ANJEER, name: "Afghan Anjeer", price: 429, weight: "250g",
+    image: fig, images: [fig, fig, fig, fig],
+    tagline: "Naturally sweet dry figs",
+    variants: [{ weight: "250g", price: 429 }, { weight: "500g", price: 799 }, { weight: "1kg", price: 1549 }],
+    description: "Sun-dried Afghan figs with a honey-like sweetness and soft, chewy texture. A traditional favourite for winter and daily wellness.",
+    benefits: ["Rich in dietary fibre", "Naturally sweet", "Good source of calcium", "No added sugar"],
+    nutrition: nutrition(249, 3.3, 64, 0.9, 9.8, 162, 2),
+    storage: STORAGE_DRIED, delivery: DELIVERY_STD,
+    rating: 4.8, reviews: 134, badge: "Best Seller",
   },
   {
-    id: "dates-medjool", categoryId: CATEGORY_IDS.DATES, price: 899, weight: "250g", name: "Medjool Dates", 
-    image: giftbox,
-    images: [
-       giftbox,
-       giftbox,
-       giftbox,
-       giftbox,
-    ],
-    tagline: "King of all dates", variants: [{ weight: "500g", price: 899 }],
-    description: "",
-    benefits: [],
-   nutrition: {
-
-    servingSize: "100g",
-
-    items: [
-
-        {
-            name: "Energy",
-            value: 553,
-            unit: "kcal",
-        },
-
-        {
-            name: "Protein",
-            value: 18,
-            unit: "g",
-        },
-
-        {
-            name: "Carbohydrates",
-            value: 30,
-            unit: "g",
-        },
-
-        {
-            name: "Fat",
-            value: 44,
-            unit: "g",
-        },
-
-        {
-            name: "Fiber",
-            value: 3,
-            unit: "g",
-        },
-
-        {
-            name: "Calcium",
-            value: 37,
-            unit: "mg",
-        },
-
-        {
-            name: "Iron",
-            value: 6,
-            unit: "mg",
-        },
-
-    ],
-},
-    storage: [],
-    delivery: [],
-    rating: 0,
-    reviews: 0
+    id: "anjeer-premium", categoryId: CATEGORY_IDS.ANJEER, name: "Premium Dry Figs", price: 379, weight: "250g",
+    image: fig, images: [fig, fig, fig, fig],
+    tagline: "Soft & fibre rich",
+    variants: [{ weight: "250g", price: 379 }, { weight: "500g", price: 729 }, { weight: "1kg", price: 1399 }],
+    description: "Soft, plump dry figs that are ready to eat without soaking. Great with milk, in desserts or on their own.",
+    benefits: ["Soft and chewy", "High in fibre", "Supports digestion", "Natural energy source"],
+    nutrition: nutrition(249, 3.3, 64, 0.9, 9.8, 162, 2),
+    storage: STORAGE_DRIED, delivery: DELIVERY_STD,
+    rating: 4.7, reviews: 97,
   },
   {
-    id: "dates-kimia", categoryId: CATEGORY_IDS.DATES, price: 399, weight: "250g", name: "Kimia Dates", 
-    image: giftbox,
-    images: [
-       giftbox,
-       giftbox,
-       giftbox,
-       giftbox,
-    ],
-    tagline: "Naturally juicy & sweet", variants: [{ weight: "500g", price: 399 }],
-    description: "",
-    benefits: [],
-    nutrition: {
-
-    servingSize: "100g",
-
-    items: [
-
-        {
-            name: "Energy",
-            value: 553,
-            unit: "kcal",
-        },
-
-        {
-            name: "Protein",
-            value: 18,
-            unit: "g",
-        },
-
-        {
-            name: "Carbohydrates",
-            value: 30,
-            unit: "g",
-        },
-
-        {
-            name: "Fat",
-            value: 44,
-            unit: "g",
-        },
-
-        {
-            name: "Fiber",
-            value: 3,
-            unit: "g",
-        },
-
-        {
-            name: "Calcium",
-            value: 37,
-            unit: "mg",
-        },
-
-        {
-            name: "Iron",
-            value: 6,
-            unit: "mg",
-        },
-
-    ],
-},
-    storage: [],
-    delivery: [],
-    rating: 0,
-    reviews: 0
-  },
-
-  // Apricot
-  {
-    id: "apricot-premium", categoryId: CATEGORY_IDS.DEHYDRATED_FRUITS, price: 549, weight: "250g", name: "Premium Apricots",
-    image: giftbox,
-    images: [
-       giftbox,
-       giftbox,
-       giftbox,
-       giftbox,
-    ],
-    tagline: "Soft & naturally sweet", variants: [{ weight: "500g", price: 549 }],
-    description: "",
-    benefits: [],
-    nutrition: {
-
-    servingSize: "100g",
-
-    items: [
-
-        {
-            name: "Energy",
-            value: 553,
-            unit: "kcal",
-        },
-
-        {
-            name: "Protein",
-            value: 18,
-            unit: "g",
-        },
-
-        {
-            name: "Carbohydrates",
-            value: 30,
-            unit: "g",
-        },
-
-        {
-            name: "Fat",
-            value: 44,
-            unit: "g",
-        },
-
-        {
-            name: "Fiber",
-            value: 3,
-            unit: "g",
-        },
-
-        {
-            name: "Calcium",
-            value: 37,
-            unit: "mg",
-        },
-
-        {
-            name: "Iron",
-            value: 6,
-            unit: "mg",
-        },
-
-    ],
-},
-    storage: [],
-    delivery: [],
-    rating: 0,
-    reviews: 0
+    id: "anjeer-turkish", categoryId: CATEGORY_IDS.ANJEER, name: "Turkish Anjeer", price: 459, weight: "250g",
+    image: fig, images: [fig, fig, fig, fig],
+    tagline: "Juicy, mildly sweet figs",
+    variants: [{ weight: "250g", price: 459 }, { weight: "500g", price: 869 }],
+    description: "Turkish figs known for their juicy texture and mild sweetness. Clean, evenly sized fruits with a soft bite.",
+    benefits: ["Juicy, soft texture", "Mild natural sweetness", "Rich in potassium", "Evenly sized fruits"],
+    nutrition: nutrition(249, 3.3, 64, 0.9, 9.8, 162, 2),
+    storage: STORAGE_DRIED, delivery: DELIVERY_STD,
+    rating: 4.7, reviews: 61,
   },
   {
-    id: "apricot-premium2", categoryId: CATEGORY_IDS.DEHYDRATED_FRUITS, price: 549, weight: "250g", name: "Premium Apricots",
-    image: giftbox,
-    images: [
-       giftbox,
-       giftbox,
-       giftbox,
-       giftbox,
-    ],
-    tagline: "Soft & naturally sweet", variants: [{ weight: "500g", price: 549 }],
-    description: "",
-    benefits: [],
-    nutrition: {
-
-    servingSize: "100g",
-
-    items: [
-
-        {
-            name: "Energy",
-            value: 553,
-            unit: "kcal",
-        },
-
-        {
-            name: "Protein",
-            value: 18,
-            unit: "g",
-        },
-
-        {
-            name: "Carbohydrates",
-            value: 30,
-            unit: "g",
-        },
-
-        {
-            name: "Fat",
-            value: 44,
-            unit: "g",
-        },
-
-        {
-            name: "Fiber",
-            value: 3,
-            unit: "g",
-        },
-
-        {
-            name: "Calcium",
-            value: 37,
-            unit: "mg",
-        },
-
-        {
-            name: "Iron",
-            value: 6,
-            unit: "mg",
-        },
-
-    ],
-},
-    storage: [],
-    delivery: [],
-    rating: 0,
-    reviews: 0
-  },
-  {
-    id: "apricot-premium3", categoryId: CATEGORY_IDS.DEHYDRATED_FRUITS, price: 549, weight: "250g", name: "Premium Apricots",
-    image: giftbox,
-    images: [
-       giftbox,
-       giftbox,
-       giftbox,
-       giftbox,
-    ],
-    tagline: "Soft & naturally sweet", variants: [{ weight: "500g", price: 549 }],
-    description: "",
-    benefits: [],
-    nutrition: {
-
-    servingSize: "100g",
-
-    items: [
-
-        {
-            name: "Energy",
-            value: 553,
-            unit: "kcal",
-        },
-
-        {
-            name: "Protein",
-            value: 18,
-            unit: "g",
-        },
-
-        {
-            name: "Carbohydrates",
-            value: 30,
-            unit: "g",
-        },
-
-        {
-            name: "Fat",
-            value: 44,
-            unit: "g",
-        },
-
-        {
-            name: "Fiber",
-            value: 3,
-            unit: "g",
-        },
-
-        {
-            name: "Calcium",
-            value: 37,
-            unit: "mg",
-        },
-
-        {
-            name: "Iron",
-            value: 6,
-            unit: "mg",
-        },
-
-    ],
-},
-    storage: [],
-    delivery: [],
-    rating: 0,
-    reviews: 0
-  },
-  {
-    id: "apricot-dried", categoryId: CATEGORY_IDS.DEHYDRATED_FRUITS, price: 299, weight: "250g", name: "Dried Apricots",
-    image: giftbox,
-    images: [
-       giftbox,
-       giftbox,
-       giftbox,
-       giftbox,
-    ],
-    tagline: "Rich in antioxidants", variants: [{ weight: "250g", price: 299 }],
-    description: "",
-    benefits: [],
-    nutrition: {
-
-    servingSize: "100g",
-
-    items: [
-
-        {
-            name: "Energy",
-            value: 553,
-            unit: "kcal",
-        },
-
-        {
-            name: "Protein",
-            value: 18,
-            unit: "g",
-        },
-
-        {
-            name: "Carbohydrates",
-            value: 30,
-            unit: "g",
-        },
-
-        {
-            name: "Fat",
-            value: 44,
-            unit: "g",
-        },
-
-        {
-            name: "Fiber",
-            value: 3,
-            unit: "g",
-        },
-
-        {
-            name: "Calcium",
-            value: 37,
-            unit: "mg",
-        },
-
-        {
-            name: "Iron",
-            value: 6,
-            unit: "mg",
-        },
-
-    ],
-},
-    storage: [],
-    delivery: [],
-    rating: 0,
-    reviews: 0
+    id: "anjeer-jumbo", categoryId: CATEGORY_IDS.ANJEER, name: "Jumbo Anjeer", price: 499, weight: "250g",
+    image: fig, images: [fig, fig, fig, fig],
+    tagline: "Extra large whole figs",
+    variants: [{ weight: "250g", price: 499 }, { weight: "500g", price: 949 }],
+    description: "Extra large whole figs selected for size and softness. A premium pick for gifting and special occasions.",
+    benefits: ["Extra large size", "Naturally soft", "High in fibre", "Gift-worthy quality"],
+    nutrition: nutrition(249, 3.3, 64, 0.9, 9.8, 162, 2),
+    storage: STORAGE_DRIED, delivery: DELIVERY_STD,
+    rating: 4.8, reviews: 44, badge: "Premium",
   },
 
-  // Seeds
+  // ============================ Walnut ============================
   {
-    id: "seed-mix", categoryId: CATEGORY_IDS.SEEDS, price: 299, weight: "250g", name: "Healthy Seed Mix", 
-    image: giftbox, 
-    images: [
-       giftbox,
-       giftbox,
-       giftbox,
-       giftbox,
-    ],
-    tagline: "5 super seeds in one pack", variants: [{ weight: "250g", price: 299 }],
-    description: "",
-    benefits: [],
-    nutrition: {
-
-    servingSize: "100g",
-
-    items: [
-
-        {
-            name: "Energy",
-            value: 553,
-            unit: "kcal",
-        },
-
-        {
-            name: "Protein",
-            value: 18,
-            unit: "g",
-        },
-
-        {
-            name: "Carbohydrates",
-            value: 30,
-            unit: "g",
-        },
-
-        {
-            name: "Fat",
-            value: 44,
-            unit: "g",
-        },
-
-        {
-            name: "Fiber",
-            value: 3,
-            unit: "g",
-        },
-
-        {
-            name: "Calcium",
-            value: 37,
-            unit: "mg",
-        },
-
-        {
-            name: "Iron",
-            value: 6,
-            unit: "mg",
-        },
-
-    ],
-},
-    storage: [],
-    delivery: [],
-    rating: 0,
-    reviews: 0
+    id: "walnut-light", categoryId: CATEGORY_IDS.WALNUT, name: "Light Walnut Kernels", price: 399, weight: "250g",
+    image: walnut, images: [walnut, walnut, walnut, walnut],
+    tagline: "Healthy omega-3 rich nuts",
+    variants: [{ weight: "250g", price: 399 }, { weight: "500g", price: 749 }, { weight: "1kg", price: 1449 }],
+    description: "Light-coloured walnut kernels with a mild, slightly sweet taste. Less bitter and ideal for everyday eating and baking.",
+    benefits: ["Rich in omega-3", "Supports brain health", "Mild, less bitter taste", "Good for heart health"],
+    nutrition: nutrition(654, 15, 14, 65, 7, 98, 3),
+    storage: STORAGE_NUTS, delivery: DELIVERY_STD,
+    rating: 4.7, reviews: 119,
   },
   {
-    id: "chia", categoryId: CATEGORY_IDS.SEEDS, price: 249, weight: "250g", name: "Chia Seeds", 
-    image: giftbox,
-    images: [
-       giftbox,
-       giftbox,
-       giftbox,
-       giftbox,
-    ],
-    tagline: "Excellent source of fibre", variants: [{ weight: "250g", price: 249 }],
-    description: "",
-    benefits: [],
-   nutrition: {
-
-    servingSize: "100g",
-
-    items: [
-
-        {
-            name: "Energy",
-            value: 553,
-            unit: "kcal",
-        },
-
-        {
-            name: "Protein",
-            value: 18,
-            unit: "g",
-        },
-
-        {
-            name: "Carbohydrates",
-            value: 30,
-            unit: "g",
-        },
-
-        {
-            name: "Fat",
-            value: 44,
-            unit: "g",
-        },
-
-        {
-            name: "Fiber",
-            value: 3,
-            unit: "g",
-        },
-
-        {
-            name: "Calcium",
-            value: 37,
-            unit: "mg",
-        },
-
-        {
-            name: "Iron",
-            value: 6,
-            unit: "mg",
-        },
-
-    ],
-},
-    storage: [],
-    delivery: [],
-    rating: 0,
-    reviews: 0
+    id: "walnut-premium", categoryId: CATEGORY_IDS.WALNUT, name: "Premium Akhrot", price: 449, weight: "250g",
+    image: walnut, images: [walnut, walnut, walnut, walnut],
+    tagline: "Fresh handpicked kernels",
+    variants: [{ weight: "250g", price: 449 }, { weight: "500g", price: 849 }, { weight: "1kg", price: 1649 }],
+    description: "Handpicked premium walnut kernels, bigger and lighter with a fresh, buttery crunch. Selected to keep bitterness low.",
+    benefits: ["Large, handpicked kernels", "Rich in antioxidants", "Excellent source of healthy fats", "Fresh and crunchy"],
+    nutrition: nutrition(654, 15, 14, 65, 7, 98, 3),
+    storage: STORAGE_NUTS, delivery: DELIVERY_STD,
+    rating: 4.8, reviews: 103, badge: "Best Seller",
   },
   {
-    id: "flax", categoryId: CATEGORY_IDS.SEEDS, price: 199, weight: "250g", name: "Flax Seeds", 
-    image: giftbox,
-    images: [
-       giftbox,
-       giftbox,
-       giftbox,
-       giftbox,
-    ],
-    tagline: "Rich in omega-3", variants: [{ weight: "250g", price: 199 }],
-    description: "",
-    benefits: [],
-    nutrition: {
-
-    servingSize: "100g",
-
-    items: [
-
-        {
-            name: "Energy",
-            value: 553,
-            unit: "kcal",
-        },
-
-        {
-            name: "Protein",
-            value: 18,
-            unit: "g",
-        },
-
-        {
-            name: "Carbohydrates",
-            value: 30,
-            unit: "g",
-        },
-
-        {
-            name: "Fat",
-            value: 44,
-            unit: "g",
-        },
-
-        {
-            name: "Fiber",
-            value: 3,
-            unit: "g",
-        },
-
-        {
-            name: "Calcium",
-            value: 37,
-            unit: "mg",
-        },
-
-        {
-            name: "Iron",
-            value: 6,
-            unit: "mg",
-        },
-
-    ],
-},
-    storage: [],
-    delivery: [],
-    rating: 0,
-    reviews: 0
+    id: "walnut-inshell", categoryId: CATEGORY_IDS.WALNUT, name: "Walnuts In Shell", price: 299, weight: "500g",
+    image: walnut, images: [walnut, walnut, walnut, walnut],
+    tagline: "Natural, thin-shell walnuts",
+    variants: [{ weight: "500g", price: 299 }, { weight: "1kg", price: 579 }],
+    description: "Whole walnuts in their natural thin shell, which keeps the kernel fresh for longer. Crack open just before eating for the best flavour.",
+    benefits: ["Naturally protected kernel", "Stays fresh longer", "Thin, easy-to-crack shell", "Unprocessed"],
+    nutrition: nutrition(654, 15, 14, 65, 7, 98, 3),
+    storage: STORAGE_NUTS, delivery: DELIVERY_STD,
+    rating: 4.5, reviews: 36,
   },
   {
-    id: "pumpkin", categoryId: CATEGORY_IDS.SEEDS, price: 349, weight: "250g", name: "Pumpkin Seeds", 
-    image: giftbox,
-    images: [
-       giftbox,
-       giftbox,
-       giftbox,
-       giftbox,
-    ],
-    tagline: "Protein packed snack", variants: [{ weight: "250g", price: 349 }],
-    description: "",
-    benefits: [],
-    nutrition: {
-
-    servingSize: "100g",
-
-    items: [
-
-        {
-            name: "Energy",
-            value: 553,
-            unit: "kcal",
-        },
-
-        {
-            name: "Protein",
-            value: 18,
-            unit: "g",
-        },
-
-        {
-            name: "Carbohydrates",
-            value: 30,
-            unit: "g",
-        },
-
-        {
-            name: "Fat",
-            value: 44,
-            unit: "g",
-        },
-
-        {
-            name: "Fiber",
-            value: 3,
-            unit: "g",
-        },
-
-        {
-            name: "Calcium",
-            value: 37,
-            unit: "mg",
-        },
-
-        {
-            name: "Iron",
-            value: 6,
-            unit: "mg",
-        },
-
-    ],
-},
-    storage: [],
-    delivery: [],
-    rating: 0,
-    reviews: 0
+    id: "walnut-halves", categoryId: CATEGORY_IDS.WALNUT, name: "Walnut Halves", price: 479, weight: "250g",
+    image: walnut, images: [walnut, walnut, walnut, walnut],
+    tagline: "Whole halves, light & crisp",
+    variants: [{ weight: "250g", price: 479 }, { weight: "500g", price: 899 }],
+    description: "Intact light walnut halves with a crisp texture and clean finish. Excellent for brownies, salads and garnishing.",
+    benefits: ["Whole, unbroken halves", "Great for baking", "Rich in omega-3", "Light, mild taste"],
+    nutrition: nutrition(654, 15, 14, 65, 7, 98, 3),
+    storage: STORAGE_NUTS, delivery: DELIVERY_STD,
+    rating: 4.7, reviews: 47, badge: "New",
   },
 
-  // Snacks
+  // ============================ Dates ============================
   {
-    id: "namkeen", categoryId: CATEGORY_IDS.SNACKS, price: 199, weight: "300g", name: "Masala Namkeen Mix", 
-    image: namkeen,
-    images: [
-       namkeen,
-       namkeen,
-       namkeen,
-       namkeen,
-    ],
-    tagline: "Crispy traditional mix", variants: [{ weight: "300g", price: 199 }, { weight: "500g", price: 299 }],
-    description: "",
-    benefits: [],
-   nutrition: {
-
-    servingSize: "100g",
-
-    items: [
-
-        {
-            name: "Energy",
-            value: 553,
-            unit: "kcal",
-        },
-
-        {
-            name: "Protein",
-            value: 18,
-            unit: "g",
-        },
-
-        {
-            name: "Carbohydrates",
-            value: 30,
-            unit: "g",
-        },
-
-        {
-            name: "Fat",
-            value: 44,
-            unit: "g",
-        },
-
-        {
-            name: "Fiber",
-            value: 3,
-            unit: "g",
-        },
-
-        {
-            name: "Calcium",
-            value: 37,
-            unit: "mg",
-        },
-
-        {
-            name: "Iron",
-            value: 6,
-            unit: "mg",
-        },
-
-    ],
-},
-    storage: [],
-    delivery: [],
-    rating: 0,
-    reviews: 0
+    id: "dates-ajwa", categoryId: CATEGORY_IDS.DATES, name: "Ajwa Dates", price: 379, weight: "250g",
+    image: giftbox, images: [giftbox, giftbox, giftbox, giftbox],
+    tagline: "Soft premium Arabian dates",
+    variants: [{ weight: "250g", price: 379 }, { weight: "500g", price: 699 }, { weight: "1kg", price: 1349 }],
+    description: "Ajwa dates from Madinah with a dark colour, soft texture and mildly sweet taste. Highly valued for tradition and nutrition.",
+    benefits: ["Soft, melt-in-mouth texture", "Naturally sweet", "Rich in fibre", "Traditionally prized variety"],
+    nutrition: nutrition(277, 2, 75, 0.2, 7, 64, 1),
+    storage: STORAGE_DRIED, delivery: DELIVERY_STD,
+    rating: 4.9, reviews: 176, badge: "Premium",
   },
   {
-    id: "corn-mixture", categoryId: CATEGORY_IDS.SNACKS, price: 199, weight: "300g", name: "Corn Mixture", 
-    image: namkeen,
-    images: [
-       namkeen,
-       namkeen,
-       namkeen,
-       namkeen,
-    ],
-    tagline: "Crunchy & spicy delight", variants: [{ weight: "300g", price: 199 }],
-    description: "",
-    benefits: [],
-    nutrition: {
-
-    servingSize: "100g",
-
-    items: [
-
-        {
-            name: "Energy",
-            value: 553,
-            unit: "kcal",
-        },
-
-        {
-            name: "Protein",
-            value: 18,
-            unit: "g",
-        },
-
-        {
-            name: "Carbohydrates",
-            value: 30,
-            unit: "g",
-        },
-
-        {
-            name: "Fat",
-            value: 44,
-            unit: "g",
-        },
-
-        {
-            name: "Fiber",
-            value: 3,
-            unit: "g",
-        },
-
-        {
-            name: "Calcium",
-            value: 37,
-            unit: "mg",
-        },
-
-        {
-            name: "Iron",
-            value: 6,
-            unit: "mg",
-        },
-
-    ],
-},
-    storage: [],
-    delivery: [],
-    rating: 0,
-    reviews: 0
+    id: "dates-medjool", categoryId: CATEGORY_IDS.DATES, name: "Medjool Dates", price: 479, weight: "250g",
+    image: giftbox, images: [giftbox, giftbox, giftbox, giftbox],
+    tagline: "King of all dates",
+    variants: [{ weight: "250g", price: 479 }, { weight: "500g", price: 899 }, { weight: "1kg", price: 1749 }],
+    description: "Large, caramel-like Medjool dates with a rich, soft and juicy bite. Perfect for snacking, smoothies and stuffed desserts.",
+    benefits: ["Large and juicy", "Caramel-like sweetness", "Good source of potassium", "Quick natural energy"],
+    nutrition: nutrition(277, 1.8, 75, 0.2, 6.7, 64, 0.9),
+    storage: STORAGE_DRIED, delivery: DELIVERY_STD,
+    rating: 4.9, reviews: 221, badge: "Best Seller",
   },
   {
-    id: "diet-mixture", categoryId: CATEGORY_IDS.SNACKS, price: 279, weight: "300g", name: "Diet Mixture", 
-    image: namkeen,
-    images: [
-       namkeen,
-       namkeen,
-       namkeen,
-       namkeen,
-    ],
-    tagline: "Healthy roasted snack", variants: [{ weight: "300g", price: 279 }],
-    description: "",
-    benefits: [],
-    nutrition: {
-
-    servingSize: "100g",
-
-    items: [
-
-        {
-            name: "Energy",
-            value: 553,
-            unit: "kcal",
-        },
-
-        {
-            name: "Protein",
-            value: 18,
-            unit: "g",
-        },
-
-        {
-            name: "Carbohydrates",
-            value: 30,
-            unit: "g",
-        },
-
-        {
-            name: "Fat",
-            value: 44,
-            unit: "g",
-        },
-
-        {
-            name: "Fiber",
-            value: 3,
-            unit: "g",
-        },
-
-        {
-            name: "Calcium",
-            value: 37,
-            unit: "mg",
-        },
-
-        {
-            name: "Iron",
-            value: 6,
-            unit: "mg",
-        },
-
-    ],
-},
-    storage: [],
-    delivery: [],
-    rating: 0,
-    reviews: 0
-  },
-
-  // Dehydrated Fruits
-  {
-    id: "kiwi", categoryId: CATEGORY_IDS.DEHYDRATED_FRUITS, price: 399, weight: "250g", name: "Dried Kiwi", 
-    image: giftbox,
-    images: [
-       giftbox,
-       giftbox,
-       giftbox,
-       giftbox,
-    ],
-    tagline: "Tangy tropical slices", variants: [{ weight: "250g", price: 399 }],
-    description: "",
-    benefits: [],
-    nutrition: {
-
-    servingSize: "100g",
-
-    items: [
-
-        {
-            name: "Energy",
-            value: 553,
-            unit: "kcal",
-        },
-
-        {
-            name: "Protein",
-            value: 18,
-            unit: "g",
-        },
-
-        {
-            name: "Carbohydrates",
-            value: 30,
-            unit: "g",
-        },
-
-        {
-            name: "Fat",
-            value: 44,
-            unit: "g",
-        },
-
-        {
-            name: "Fiber",
-            value: 3,
-            unit: "g",
-        },
-
-        {
-            name: "Calcium",
-            value: 37,
-            unit: "mg",
-        },
-
-        {
-            name: "Iron",
-            value: 6,
-            unit: "mg",
-        },
-
-    ],
-},
-    storage: [],
-    delivery: [],
-    rating: 0,
-    reviews: 0
+    id: "dates-kimia", categoryId: CATEGORY_IDS.DATES, name: "Kimia Dates", price: 219, weight: "250g",
+    image: giftbox, images: [giftbox, giftbox, giftbox, giftbox],
+    tagline: "Naturally juicy & sweet",
+    variants: [{ weight: "250g", price: 219 }, { weight: "500g", price: 399 }, { weight: "1kg", price: 769 }],
+    description: "Soft, moist Kimia dates with a rich brown colour and gentle sweetness. A budget-friendly choice for the whole family.",
+    benefits: ["Soft and moist", "Everyday value pick", "Rich in fibre", "No added sugar"],
+    nutrition: nutrition(282, 2.5, 75, 0.4, 8, 39, 1),
+    storage: STORAGE_DRIED, delivery: DELIVERY_STD,
+    rating: 4.6, reviews: 158,
   },
   {
-    id: "pineapple", categoryId: CATEGORY_IDS.DEHYDRATED_FRUITS, price: 349, weight: "250g", name: "Dried Pineapple", 
-    image: giftbox,
-    images: [
-       giftbox,
-       giftbox,
-       giftbox,
-       giftbox,
-    ],
-    tagline: "Naturally sweet bites", variants: [{ weight: "250g", price: 349 }],
-    description: "",
-    benefits: [],
-    nutrition: {
-
-    servingSize: "100g",
-
-    items: [
-
-        {
-            name: "Energy",
-            value: 553,
-            unit: "kcal",
-        },
-
-        {
-            name: "Protein",
-            value: 18,
-            unit: "g",
-        },
-
-        {
-            name: "Carbohydrates",
-            value: 30,
-            unit: "g",
-        },
-
-        {
-            name: "Fat",
-            value: 44,
-            unit: "g",
-        },
-
-        {
-            name: "Fiber",
-            value: 3,
-            unit: "g",
-        },
-
-        {
-            name: "Calcium",
-            value: 37,
-            unit: "mg",
-        },
-
-        {
-            name: "Iron",
-            value: 6,
-            unit: "mg",
-        },
-
-    ],
-},
-    storage: [],
-    delivery: [],
-    rating: 0,
-    reviews: 0
+    id: "dates-khudri", categoryId: CATEGORY_IDS.DATES, name: "Khudri Dates", price: 199, weight: "250g",
+    image: giftbox, images: [giftbox, giftbox, giftbox, giftbox],
+    tagline: "Soft, chewy Saudi dates",
+    variants: [{ weight: "250g", price: 199 }, { weight: "500g", price: 369 }, { weight: "1kg", price: 699 }],
+    description: "Khudri dates have a soft, slightly chewy flesh and a mellow, toffee-like sweetness. Loved for daily eating and Ramadan tables.",
+    benefits: ["Soft and chewy", "Toffee-like sweetness", "Good source of minerals", "Budget friendly"],
+    nutrition: nutrition(280, 2.4, 75, 0.4, 8, 40, 1),
+    storage: STORAGE_DRIED, delivery: DELIVERY_STD,
+    rating: 4.5, reviews: 83,
   },
   {
-    id: "strawberry", categoryId: CATEGORY_IDS.DEHYDRATED_FRUITS, price: 449, weight: "250g", name: "Dried Strawberry", 
-    image: giftbox,
-    images: [
-       giftbox,
-       giftbox,
-       giftbox,
-       giftbox,
-    ],
-    tagline: "Burst of fruity flavour", variants: [{ weight: "250g", price: 449 }],
-    description: "",
-    benefits: [],
-   nutrition: {
-
-    servingSize: "100g",
-
-    items: [
-
-        {
-            name: "Energy",
-            value: 553,
-            unit: "kcal",
-        },
-
-        {
-            name: "Protein",
-            value: 18,
-            unit: "g",
-        },
-
-        {
-            name: "Carbohydrates",
-            value: 30,
-            unit: "g",
-        },
-
-        {
-            name: "Fat",
-            value: 44,
-            unit: "g",
-        },
-
-        {
-            name: "Fiber",
-            value: 3,
-            unit: "g",
-        },
-
-        {
-            name: "Calcium",
-            value: 37,
-            unit: "mg",
-        },
-
-        {
-            name: "Iron",
-            value: 6,
-            unit: "mg",
-        },
-
-    ],
-},
-    storage: [],
-    delivery: [],
-    rating: 0,
-    reviews: 0
+    id: "dates-safawi", categoryId: CATEGORY_IDS.DATES, name: "Safawi Dates", price: 299, weight: "250g",
+    image: giftbox, images: [giftbox, giftbox, giftbox, giftbox],
+    tagline: "Dark, rich & moist dates",
+    variants: [{ weight: "250g", price: 299 }, { weight: "500g", price: 569 }, { weight: "1kg", price: 1099 }],
+    description: "Dark, moist Safawi dates from Madinah with a deep, rich flavour and a soft bite. A step up from everyday dates.",
+    benefits: ["Deep, rich flavour", "Moist and soft", "Good source of fibre", "Naturally energising"],
+    nutrition: nutrition(282, 2.5, 75, 0.4, 8, 39, 1),
+    storage: STORAGE_DRIED, delivery: DELIVERY_STD,
+    rating: 4.7, reviews: 67, badge: "New",
   },
 
-  // Spices
+  // ============================ Raisins ============================
   {
-    id: "turmeric", categoryId: CATEGORY_IDS.SPICES, price: 149, weight: "250g", name: "Organic Turmeric Powder", 
-    image: giftbox,
-    images: [
-       giftbox,
-       giftbox,
-       giftbox,
-       giftbox,
-    ],
-    tagline: "Pure farm-fresh turmeric", variants: [{ weight: "250g", price: 149 }],
-    description: "",
-    benefits: [],
-    nutrition: {
-
-    servingSize: "100g",
-
-    items: [
-
-        {
-            name: "Energy",
-            value: 553,
-            unit: "kcal",
-        },
-
-        {
-            name: "Protein",
-            value: 18,
-            unit: "g",
-        },
-
-        {
-            name: "Carbohydrates",
-            value: 30,
-            unit: "g",
-        },
-
-        {
-            name: "Fat",
-            value: 44,
-            unit: "g",
-        },
-
-        {
-            name: "Fiber",
-            value: 3,
-            unit: "g",
-        },
-
-        {
-            name: "Calcium",
-            value: 37,
-            unit: "mg",
-        },
-
-        {
-            name: "Iron",
-            value: 6,
-            unit: "mg",
-        },
-
-    ],
-},
-    storage: [],
-    delivery: [],
-    rating: 0,
-    reviews: 0
+    id: "raisin-green", categoryId: CATEGORY_IDS.RAISINS, name: "Green Kishmish", price: 189, weight: "250g",
+    image: raisin, images: [raisin, raisin, raisin, raisin],
+    tagline: "Sweet, seedless green raisins",
+    variants: [{ weight: "250g", price: 189 }, { weight: "500g", price: 359 }, { weight: "1kg", price: 699 }],
+    description: "Seedless green raisins with a bright, tangy-sweet taste and a soft chew. Great for sweets, pulao, kheer and snacking.",
+    benefits: ["Seedless", "Naturally sweet", "Good source of iron", "Versatile in cooking"],
+    nutrition: nutrition(299, 3, 79, 0.5, 3.7, 50, 1.9),
+    storage: STORAGE_DRIED, delivery: DELIVERY_STD,
+    rating: 4.7, reviews: 164, badge: "Best Seller",
   },
   {
-    id: "pepper", categoryId: CATEGORY_IDS.SPICES, price: 249, weight: "250g", name: "Black Pepper", 
-    image: giftbox,
-    images: [
-       giftbox,
-       giftbox,
-       giftbox,
-       giftbox,
-    ],
-    tagline: "Bold aroma & flavour", variants: [{ weight: "250g", price: 249 }],
-    description: "",
-    benefits: [],
-   nutrition: {
-
-    servingSize: "100g",
-
-    items: [
-
-        {
-            name: "Energy",
-            value: 553,
-            unit: "kcal",
-        },
-
-        {
-            name: "Protein",
-            value: 18,
-            unit: "g",
-        },
-
-        {
-            name: "Carbohydrates",
-            value: 30,
-            unit: "g",
-        },
-
-        {
-            name: "Fat",
-            value: 44,
-            unit: "g",
-        },
-
-        {
-            name: "Fiber",
-            value: 3,
-            unit: "g",
-        },
-
-        {
-            name: "Calcium",
-            value: 37,
-            unit: "mg",
-        },
-
-        {
-            name: "Iron",
-            value: 6,
-            unit: "mg",
-        },
-
-    ],
-},
-    storage: [],
-    delivery: [],
-    rating: 0,
-    reviews: 0
+    id: "raisin-premium", categoryId: CATEGORY_IDS.RAISINS, name: "Premium Kishmish", price: 249, weight: "250g",
+    image: raisin, images: [raisin, raisin, raisin, raisin],
+    tagline: "Plump, juicy premium raisins",
+    variants: [{ weight: "250g", price: 249 }, { weight: "500g", price: 479 }, { weight: "1kg", price: 929 }],
+    description: "Large, plump raisins sorted for size and softness. Naturally juicy with a deep, honeyed flavour.",
+    benefits: ["Large and plump", "Juicy and soft", "Natural energy source", "Sorted for quality"],
+    nutrition: nutrition(299, 3, 79, 0.5, 3.7, 50, 1.9),
+    storage: STORAGE_DRIED, delivery: DELIVERY_STD,
+    rating: 4.8, reviews: 121, badge: "Premium",
   },
   {
-    id: "cardamom", categoryId: CATEGORY_IDS.SPICES, price: 499, weight: "100g", name: "Green Cardamom", 
-    image: giftbox,
-    images: [
-       giftbox,
-       giftbox,
-       giftbox,
-       giftbox,
-    ],
-    tagline: "Premium aromatic spice", variants: [{ weight: "100g", price: 499 }],
-    description: "",
-    benefits: [],
-    nutrition: {
-
-    servingSize: "100g",
-
-    items: [
-
-        {
-            name: "Energy",
-            value: 553,
-            unit: "kcal",
-        },
-
-        {
-            name: "Protein",
-            value: 18,
-            unit: "g",
-        },
-
-        {
-            name: "Carbohydrates",
-            value: 30,
-            unit: "g",
-        },
-
-        {
-            name: "Fat",
-            value: 44,
-            unit: "g",
-        },
-
-        {
-            name: "Fiber",
-            value: 3,
-            unit: "g",
-        },
-
-        {
-            name: "Calcium",
-            value: 37,
-            unit: "mg",
-        },
-
-        {
-            name: "Iron",
-            value: 6,
-            unit: "mg",
-        },
-
-    ],
-},
-    storage: [],
-    delivery: [],
-    rating: 0,
-    reviews: 0
-  },
-
-  // Gift Boxes
-  {
-    id: "gift-classic", categoryId: CATEGORY_IDS.GIFT_BOXES, price: 999, weight: "750g", name: "Classic Gift Box", image: giftbox, tagline: "Perfect for every celebration", variants: [{ weight: "750g", price: 999 }],
-    description: "",
-    benefits: [],
-    nutrition: {
-
-    servingSize: "100g",
-
-    items: [
-
-        {
-            name: "Energy",
-            value: 553,
-            unit: "kcal",
-        },
-
-        {
-            name: "Protein",
-            value: 18,
-            unit: "g",
-        },
-
-        {
-            name: "Carbohydrates",
-            value: 30,
-            unit: "g",
-        },
-
-        {
-            name: "Fat",
-            value: 44,
-            unit: "g",
-        },
-
-        {
-            name: "Fiber",
-            value: 3,
-            unit: "g",
-        },
-
-        {
-            name: "Calcium",
-            value: 37,
-            unit: "mg",
-        },
-
-        {
-            name: "Iron",
-            value: 6,
-            unit: "mg",
-        },
-
-    ],
-},
-    storage: [],
-    delivery: [],
-    rating: 0,
-    reviews: 0
+    id: "raisin-black", categoryId: CATEGORY_IDS.RAISINS, name: "Black Raisins", price: 169, weight: "250g",
+    image: raisin, images: [raisin, raisin, raisin, raisin],
+    tagline: "Dark, rich & naturally sweet",
+    variants: [{ weight: "250g", price: 169 }, { weight: "500g", price: 319 }, { weight: "1kg", price: 619 }],
+    description: "Dark seedless raisins with a deep, rich sweetness. A healthy alternative to sugary snacks.",
+    benefits: ["Seedless", "Rich in antioxidants", "Good source of iron", "Sweet without added sugar"],
+    nutrition: nutrition(300, 3, 79, 0.5, 4, 50, 2),
+    storage: STORAGE_DRIED, delivery: DELIVERY_STD,
+    rating: 4.6, reviews: 92,
   },
   {
-    id: "gift-premium", categoryId: CATEGORY_IDS.GIFT_BOXES, price: 1499, weight: "1kg", name: "Premium Gift Box", image: giftbox, tagline: "Luxury assorted dry fruits", variants: [{ weight: "1kg", price: 1499 }],
-    description: "",
-    benefits: [],
-    nutrition: {
-
-    servingSize: "100g",
-
-    items: [
-
-        {
-            name: "Energy",
-            value: 553,
-            unit: "kcal",
-        },
-
-        {
-            name: "Protein",
-            value: 18,
-            unit: "g",
-        },
-
-        {
-            name: "Carbohydrates",
-            value: 30,
-            unit: "g",
-        },
-
-        {
-            name: "Fat",
-            value: 44,
-            unit: "g",
-        },
-
-        {
-            name: "Fiber",
-            value: 3,
-            unit: "g",
-        },
-
-        {
-            name: "Calcium",
-            value: 37,
-            unit: "mg",
-        },
-
-        {
-            name: "Iron",
-            value: 6,
-            unit: "mg",
-        },
-
-    ],
-},
-    storage: [],
-    delivery: [],
-    rating: 0,
-    reviews: 0
+    id: "raisin-golden", categoryId: CATEGORY_IDS.RAISINS, name: "Golden Raisins", price: 199, weight: "250g",
+    image: raisin, images: [raisin, raisin, raisin, raisin],
+    tagline: "Golden, soft & tangy-sweet",
+    variants: [{ weight: "250g", price: 199 }, { weight: "500g", price: 379 }, { weight: "1kg", price: 729 }],
+    description: "Golden raisins with a soft texture and a bright, fruity sweetness. Lovely in baking, salads and trail mixes.",
+    benefits: ["Bright, fruity flavour", "Soft and plump", "Great in baking", "Naturally fat free"],
+    nutrition: nutrition(299, 3, 79, 0.5, 3.7, 50, 1.9),
+    storage: STORAGE_DRIED, delivery: DELIVERY_STD,
+    rating: 4.6, reviews: 58,
   },
   {
-    id: "gift-deluxe", categoryId: CATEGORY_IDS.GIFT_BOXES, price: 2499, weight: "2kg", name: "Deluxe Family Hamper", 
-    image: giftbox,
-    images: [
-       giftbox,
-       giftbox,
-       giftbox,
-       giftbox,
-    ],
-    tagline: "Elegant festive gifting", variants: [{ weight: "2kg", price: 2499 }],
-    description: "",
-    benefits: [],
-   nutrition: {
+    id: "raisin-munakka", categoryId: CATEGORY_IDS.RAISINS, name: "Munakka (Seeded Raisins)", price: 229, weight: "250g",
+    image: raisin, images: [raisin, raisin, raisin, raisin],
+    tagline: "Large, traditional seeded raisins",
+    variants: [{ weight: "250g", price: 229 }, { weight: "500g", price: 439 }, { weight: "1kg", price: 849 }],
+    description: "Large, seeded munakka raisins valued in traditional Indian diets. Rich, fruity and naturally sweet.",
+    benefits: ["Large seeded raisins", "Traditional wellness favourite", "Good source of iron", "Naturally sweet"],
+    nutrition: nutrition(290, 3.3, 75, 0.5, 4, 60, 2),
+    storage: STORAGE_DRIED, delivery: DELIVERY_STD,
+    rating: 4.7, reviews: 76,
+  },
 
-    servingSize: "100g",
+  // ============================ Seeds ============================
+  {
+    id: "seed-mix", categoryId: CATEGORY_IDS.SEEDS, name: "Healthy Seed Mix", price: 299, weight: "250g",
+    image: giftbox, images: [giftbox, giftbox, giftbox, giftbox],
+    tagline: "5 super seeds in one pack",
+    variants: [{ weight: "250g", price: 299 }, { weight: "500g", price: 569 }],
+    description: "A balanced blend of five nutrient-dense seeds for everyday nutrition. Sprinkle on salads, oats, smoothies or eat as a snack.",
+    benefits: ["Five seeds in one pack", "Rich in omega-3", "High in protein", "Easy to add to meals"],
+    nutrition: nutrition(540, 22, 20, 42, 10, 120, 5),
+    storage: STORAGE_NUTS, delivery: DELIVERY_STD,
+    rating: 4.7, reviews: 109, badge: "New",
+  },
+  {
+    id: "chia", categoryId: CATEGORY_IDS.SEEDS, name: "Chia Seeds", price: 249, weight: "250g",
+    image: giftbox, images: [giftbox, giftbox, giftbox, giftbox],
+    tagline: "Excellent source of fibre",
+    variants: [{ weight: "250g", price: 249 }, { weight: "500g", price: 479 }],
+    description: "Tiny chia seeds that swell into a gel when soaked. Perfect for puddings, smoothies and detox water.",
+    benefits: ["Very high in fibre", "Plant-based omega-3", "Keeps you full longer", "Great for puddings"],
+    nutrition: nutrition(486, 17, 42, 31, 34, 631, 7),
+    storage: STORAGE_NUTS, delivery: DELIVERY_STD,
+    rating: 4.6, reviews: 187,
+  },
+  {
+    id: "flax", categoryId: CATEGORY_IDS.SEEDS, name: "Flax Seeds", price: 199, weight: "250g",
+    image: giftbox, images: [giftbox, giftbox, giftbox, giftbox],
+    tagline: "Rich in omega-3",
+    variants: [{ weight: "250g", price: 199 }, { weight: "500g", price: 379 }],
+    description: "Golden-brown flax seeds packed with plant omega-3 and lignans. Best dry roasted or ground fresh before eating.",
+    benefits: ["Plant-based omega-3", "High in fibre", "Supports digestion", "Easy to roast and grind"],
+    nutrition: nutrition(534, 18, 29, 42, 27, 255, 5),
+    storage: STORAGE_NUTS, delivery: DELIVERY_STD,
+    rating: 4.6, reviews: 134,
+  },
+  {
+    id: "pumpkin", categoryId: CATEGORY_IDS.SEEDS, name: "Pumpkin Seeds", price: 349, weight: "250g",
+    image: giftbox, images: [giftbox, giftbox, giftbox, giftbox],
+    tagline: "Protein packed snack",
+    variants: [{ weight: "250g", price: 349 }, { weight: "500g", price: 669 }],
+    description: "Green, hulled pumpkin seeds with a mild nutty taste. A great source of plant protein and zinc.",
+    benefits: ["High in plant protein", "Rich in zinc and magnesium", "Crunchy when roasted", "Great on salads"],
+    nutrition: nutrition(559, 30, 11, 49, 6, 46, 9),
+    storage: STORAGE_NUTS, delivery: DELIVERY_STD,
+    rating: 4.7, reviews: 118,
+  },
+  {
+    id: "sunflower", categoryId: CATEGORY_IDS.SEEDS, name: "Sunflower Seeds", price: 179, weight: "250g",
+    image: giftbox, images: [giftbox, giftbox, giftbox, giftbox],
+    tagline: "Light, nutty & Vitamin E rich",
+    variants: [{ weight: "250g", price: 179 }, { weight: "500g", price: 339 }],
+    description: "Hulled sunflower seeds with a light, nutty flavour and a soft crunch. Excellent in breads, salads and trail mixes.",
+    benefits: ["Rich in Vitamin E", "Good source of magnesium", "Mild nutty taste", "Easy everyday snack"],
+    nutrition: nutrition(584, 21, 20, 51, 9, 78, 5),
+    storage: STORAGE_NUTS, delivery: DELIVERY_STD,
+    rating: 4.5, reviews: 72,
+  },
+  {
+    id: "watermelon-seeds", categoryId: CATEGORY_IDS.SEEDS, name: "Watermelon Seeds (Magaz)", price: 299, weight: "250g",
+    image: giftbox, images: [giftbox, giftbox, giftbox, giftbox],
+    tagline: "Hulled magaz for sweets & drinks",
+    variants: [{ weight: "250g", price: 299 }, { weight: "500g", price: 569 }],
+    description: "Hulled watermelon seeds, also known as magaz, used in Indian sweets, thandai and rich gravies. Mild, creamy and full of protein.",
+    benefits: ["Traditional Indian ingredient", "Good source of protein", "Creamy, mild flavour", "Ideal for thandai and gravies"],
+    nutrition: nutrition(557, 28, 15, 47, 4, 54, 7),
+    storage: STORAGE_NUTS, delivery: DELIVERY_STD,
+    rating: 4.5, reviews: 39,
+  },
 
-    items: [
+  // ============================ Snacks ============================
+  {
+    id: "namkeen", categoryId: CATEGORY_IDS.SNACKS, name: "Masala Namkeen Mix", price: 149, weight: "200g",
+    image: namkeen, images: [namkeen, namkeen, namkeen, namkeen],
+    tagline: "Crispy traditional mix",
+    variants: [{ weight: "200g", price: 149 }, { weight: "500g", price: 349 }],
+    description: "A classic Indian mix of sev, peanuts and crispy bits in a tangy masala coating. Made for chai time and get-togethers.",
+    benefits: ["Crispy and flavourful", "Traditional recipe", "Great with tea", "Freshly packed"],
+    nutrition: nutrition(520, 12, 48, 31, 5, 40, 3),
+    storage: STORAGE_SNACK, delivery: DELIVERY_STD,
+    rating: 4.5, reviews: 88, badge: "Best Seller",
+  },
+  {
+    id: "corn-mixture", categoryId: CATEGORY_IDS.SNACKS, name: "Corn Mixture", price: 139, weight: "200g",
+    image: namkeen, images: [namkeen, namkeen, namkeen, namkeen],
+    tagline: "Crunchy & spicy delight",
+    variants: [{ weight: "200g", price: 139 }, { weight: "500g", price: 329 }],
+    description: "Crunchy corn flakes mixed with peanuts and curry leaves in a light spicy seasoning. Light, crisp and addictive.",
+    benefits: ["Light and crunchy", "Spicy, balanced seasoning", "Loaded with peanuts", "Perfect tea-time snack"],
+    nutrition: nutrition(480, 8, 62, 22, 4, 30, 3),
+    storage: STORAGE_SNACK, delivery: DELIVERY_STD,
+    rating: 4.4, reviews: 61,
+  },
+  {
+    id: "diet-mixture", categoryId: CATEGORY_IDS.SNACKS, name: "Diet Mixture", price: 189, weight: "200g",
+    image: namkeen, images: [namkeen, namkeen, namkeen, namkeen],
+    tagline: "Healthy roasted snack",
+    variants: [{ weight: "200g", price: 189 }, { weight: "500g", price: 449 }],
+    description: "A lighter mix of roasted lentils, poha and nuts with less oil. A guilt-free choice for mindful snacking.",
+    benefits: ["Roasted, not fried", "Lower in oil", "High in fibre", "Good protein snack"],
+    nutrition: nutrition(420, 14, 55, 15, 7, 50, 4),
+    storage: STORAGE_SNACK, delivery: DELIVERY_STD,
+    rating: 4.5, reviews: 54,
+  },
+  {
+    id: "makhana-roasted", categoryId: CATEGORY_IDS.SNACKS, name: "Roasted Makhana", price: 249, weight: "200g",
+    image: namkeen, images: [namkeen, namkeen, namkeen, namkeen],
+    tagline: "Light, crunchy fox nuts",
+    variants: [{ weight: "200g", price: 249 }, { weight: "500g", price: 579 }],
+    description: "Puffed fox nuts lightly roasted to a crisp, airy crunch. A light, protein-rich snack that is easy on the stomach.",
+    benefits: ["Light and airy", "Low in fat", "Good source of fibre", "Gluten free"],
+    nutrition: nutrition(380, 10, 70, 7, 12, 60, 1.4),
+    storage: STORAGE_SNACK, delivery: DELIVERY_STD,
+    rating: 4.6, reviews: 76, badge: "New",
+  },
+  {
+    id: "banana-chips", categoryId: CATEGORY_IDS.SNACKS, name: "Banana Chips", price: 129, weight: "200g",
+    image: namkeen, images: [namkeen, namkeen, namkeen, namkeen],
+    tagline: "Crispy Kerala-style chips",
+    variants: [{ weight: "200g", price: 129 }, { weight: "500g", price: 299 }],
+    description: "Thin raw banana slices fried crisp and lightly salted in the Kerala style. Crunchy, savoury and great with meals.",
+    benefits: ["Crisp Kerala-style chips", "Made from raw banana", "Lightly salted", "Great with meals or tea"],
+    nutrition: nutrition(519, 2, 58, 34, 7, 18, 1),
+    storage: STORAGE_SNACK, delivery: DELIVERY_STD,
+    rating: 4.4, reviews: 49,
+  },
 
-        {
-            name: "Energy",
-            value: 553,
-            unit: "kcal",
-        },
+  // ============================ Dehydrated Fruits ============================
+  {
+    id: "apricot-premium", categoryId: CATEGORY_IDS.DEHYDRATED_FRUITS, name: "Premium Apricots", price: 299, weight: "250g",
+    image: giftbox, images: [giftbox, giftbox, giftbox, giftbox],
+    tagline: "Soft & naturally sweet",
+    variants: [{ weight: "250g", price: 299 }, { weight: "500g", price: 569 }, { weight: "1kg", price: 1099 }],
+    description: "Soft, tangy-sweet dried apricots with no added sugar. Rich in fibre and naturally full of flavour.",
+    benefits: ["Rich in antioxidants", "Good source of fibre", "No added sugar", "Soft and chewy"],
+    nutrition: nutrition(241, 3.4, 63, 0.5, 7.3, 55, 2.7),
+    storage: STORAGE_DRIED, delivery: DELIVERY_STD,
+    rating: 4.7, reviews: 127, badge: "Best Seller",
+  },
+  {
+    id: "kiwi", categoryId: CATEGORY_IDS.DEHYDRATED_FRUITS, name: "Dried Kiwi", price: 399, weight: "250g",
+    image: giftbox, images: [giftbox, giftbox, giftbox, giftbox],
+    tagline: "Tangy tropical slices",
+    variants: [{ weight: "250g", price: 399 }, { weight: "500g", price: 769 }],
+    description: "Kiwi slices gently dehydrated to keep their tangy-sweet taste and bright green colour. A fun, fruity snack.",
+    benefits: ["Tangy-sweet flavour", "Source of Vitamin C", "Bright natural colour", "Great with yoghurt and oats"],
+    nutrition: nutrition(330, 4, 78, 1.5, 10, 120, 1),
+    storage: STORAGE_DRIED, delivery: DELIVERY_STD,
+    rating: 4.5, reviews: 47,
+  },
+  {
+    id: "pineapple", categoryId: CATEGORY_IDS.DEHYDRATED_FRUITS, name: "Dried Pineapple", price: 349, weight: "250g",
+    image: giftbox, images: [giftbox, giftbox, giftbox, giftbox],
+    tagline: "Naturally sweet bites",
+    variants: [{ weight: "250g", price: 349 }, { weight: "500g", price: 669 }],
+    description: "Juicy pineapple rings dried to a soft, chewy texture with a sweet-tart flavour. A tropical treat for snacking and baking.",
+    benefits: ["Sweet-tart tropical flavour", "Soft and chewy", "Source of manganese", "Good for baking"],
+    nutrition: nutrition(340, 2, 85, 0.5, 4, 30, 1),
+    storage: STORAGE_DRIED, delivery: DELIVERY_STD,
+    rating: 4.5, reviews: 52,
+  },
+  {
+    id: "strawberry", categoryId: CATEGORY_IDS.DEHYDRATED_FRUITS, name: "Dried Strawberry", price: 449, weight: "250g",
+    image: giftbox, images: [giftbox, giftbox, giftbox, giftbox],
+    tagline: "Burst of fruity flavour",
+    variants: [{ weight: "250g", price: 449 }, { weight: "500g", price: 869 }],
+    description: "Strawberry slices dried to concentrate their sweet, berry flavour. Lovely in cereals, desserts and as a snack.",
+    benefits: ["Intense berry flavour", "Rich in antioxidants", "Great in cereals and desserts", "Natural colour"],
+    nutrition: nutrition(350, 3, 84, 1, 14, 40, 2),
+    storage: STORAGE_DRIED, delivery: DELIVERY_STD,
+    rating: 4.6, reviews: 58,
+  },
+  {
+    id: "mango-dried", categoryId: CATEGORY_IDS.DEHYDRATED_FRUITS, name: "Dried Mango", price: 329, weight: "250g",
+    image: giftbox, images: [giftbox, giftbox, giftbox, giftbox],
+    tagline: "Sun-sweet mango slices",
+    variants: [{ weight: "250g", price: 329 }, { weight: "500g", price: 629 }],
+    description: "Ripe mango slices dried to a soft, chewy bite with a rich tropical sweetness. Mango flavour all year round.",
+    benefits: ["Rich mango flavour", "Source of Vitamin A", "Soft and chewy", "Great on-the-go snack"],
+    nutrition: nutrition(319, 2.5, 78, 1, 5, 30, 1),
+    storage: STORAGE_DRIED, delivery: DELIVERY_STD,
+    rating: 4.6, reviews: 69, badge: "New",
+  },
+  {
+    id: "cranberry", categoryId: CATEGORY_IDS.DEHYDRATED_FRUITS, name: "Dried Cranberries", price: 379, weight: "250g",
+    image: giftbox, images: [giftbox, giftbox, giftbox, giftbox],
+    tagline: "Tart-sweet ruby berries",
+    variants: [{ weight: "250g", price: 379 }, { weight: "500g", price: 729 }],
+    description: "Plump dried cranberries with a pleasant tart-sweet taste. Excellent in salads, baking, granola and trail mixes.",
+    benefits: ["Tart-sweet flavour", "Rich in antioxidants", "Great in salads and baking", "Soft, plump berries"],
+    nutrition: nutrition(308, 0.1, 82, 1.4, 5.7, 8, 0.3),
+    storage: STORAGE_DRIED, delivery: DELIVERY_STD,
+    rating: 4.5, reviews: 43,
+  },
 
-        {
-            name: "Protein",
-            value: 18,
-            unit: "g",
-        },
+  // ============================ Spices ============================
+  {
+    id: "turmeric", categoryId: CATEGORY_IDS.SPICES, name: "Organic Turmeric Powder", price: 69, weight: "100g",
+    image: giftbox, images: [giftbox, giftbox, giftbox, giftbox],
+    tagline: "Pure farm-fresh turmeric",
+    variants: [{ weight: "100g", price: 69 }, { weight: "250g", price: 149 }, { weight: "500g", price: 279 }],
+    description: "Finely ground turmeric with a deep golden colour and earthy aroma. Made from sun-dried turmeric roots with no added colour.",
+    benefits: ["Deep golden colour", "Rich in curcumin", "No added colour", "Essential everyday spice"],
+    nutrition: nutrition(312, 10, 67, 3, 22.7, 183, 55),
+    storage: STORAGE_SPICE, delivery: DELIVERY_STD,
+    rating: 4.7, reviews: 203, badge: "Best Seller",
+  },
+  {
+    id: "pepper", categoryId: CATEGORY_IDS.SPICES, name: "Black Pepper", price: 119, weight: "100g",
+    image: giftbox, images: [giftbox, giftbox, giftbox, giftbox],
+    tagline: "Bold aroma & flavour",
+    variants: [{ weight: "100g", price: 119 }, { weight: "250g", price: 249 }, { weight: "500g", price: 479 }],
+    description: "Bold, pungent whole black peppercorns with a strong aroma. Crush fresh for the best flavour in curries, soups and marinades.",
+    benefits: ["Strong aroma and heat", "Whole peppercorns", "Great freshly ground", "Essential for Indian cooking"],
+    nutrition: nutrition(251, 10, 64, 3.3, 25, 443, 9.7),
+    storage: STORAGE_SPICE, delivery: DELIVERY_STD,
+    rating: 4.6, reviews: 141,
+  },
+  {
+    id: "cardamom", categoryId: CATEGORY_IDS.SPICES, name: "Green Cardamom", price: 499, weight: "100g",
+    image: giftbox, images: [giftbox, giftbox, giftbox, giftbox],
+    tagline: "Premium aromatic spice",
+    variants: [{ weight: "100g", price: 499 }, { weight: "250g", price: 1199 }, { weight: "500g", price: 2299 }],
+    description: "Plump green elaichi pods bursting with sweet, floral aroma. Perfect for chai, biryani and Indian sweets.",
+    benefits: ["Intense sweet aroma", "Plump, bold pods", "Freshens breath naturally", "Essential for chai and sweets"],
+    nutrition: nutrition(311, 11, 68, 7, 28, 383, 14),
+    storage: STORAGE_SPICE, delivery: DELIVERY_STD,
+    rating: 4.8, reviews: 132, badge: "Premium",
+  },
+  {
+    id: "cinnamon", categoryId: CATEGORY_IDS.SPICES, name: "Cinnamon Sticks", price: 89, weight: "100g",
+    image: giftbox, images: [giftbox, giftbox, giftbox, giftbox],
+    tagline: "Sweet, warm & fragrant",
+    variants: [{ weight: "100g", price: 89 }, { weight: "250g", price: 199 }, { weight: "500g", price: 379 }],
+    description: "Aromatic cinnamon quills with a warm, sweet fragrance. Ideal for masalas, biryani, tea and desserts.",
+    benefits: ["Warm, sweet aroma", "Whole sticks keep flavour longer", "Great in tea and biryani", "Natural, unprocessed"],
+    nutrition: nutrition(247, 4, 81, 1.2, 53, 1002, 8),
+    storage: STORAGE_SPICE, delivery: DELIVERY_STD,
+    rating: 4.6, reviews: 74,
+  },
+  {
+    id: "cloves", categoryId: CATEGORY_IDS.SPICES, name: "Whole Cloves", price: 149, weight: "100g",
+    image: giftbox, images: [giftbox, giftbox, giftbox, giftbox],
+    tagline: "Strong, pungent laung",
+    variants: [{ weight: "100g", price: 149 }, { weight: "250g", price: 349 }, { weight: "500g", price: 669 }],
+    description: "Whole, oil-rich cloves with an intense, pungent aroma. Used in masalas, biryanis, teas and traditional remedies.",
+    benefits: ["Intense aroma and flavour", "Oil-rich whole buds", "Essential in garam masala", "Traditional wellness spice"],
+    nutrition: nutrition(274, 6, 66, 13, 34, 632, 11.7),
+    storage: STORAGE_SPICE, delivery: DELIVERY_STD,
+    rating: 4.6, reviews: 58,
+  },
+  {
+    id: "cumin", categoryId: CATEGORY_IDS.SPICES, name: "Cumin Seeds (Jeera)", price: 79, weight: "100g",
+    image: giftbox, images: [giftbox, giftbox, giftbox, giftbox],
+    tagline: "Fresh, earthy jeera",
+    variants: [{ weight: "100g", price: 79 }, { weight: "250g", price: 169 }, { weight: "500g", price: 319 }],
+    description: "Clean, aromatic cumin seeds with a warm, earthy flavour. A must-have for tempering dals, rice and curries.",
+    benefits: ["Earthy, warm aroma", "Clean and sorted", "Supports digestion", "Essential for tadka"],
+    nutrition: nutrition(375, 18, 44, 22, 11, 931, 66),
+    storage: STORAGE_SPICE, delivery: DELIVERY_STD,
+    rating: 4.6, reviews: 95,
+  },
 
-        {
-            name: "Carbohydrates",
-            value: 30,
-            unit: "g",
-        },
+  // ============================ Gift Boxes ============================
+  {
+    id: "gift-mini", categoryId: CATEGORY_IDS.GIFT_BOXES, name: "Mini Gift Box", price: 749, weight: "500g",
+    image: giftbox, images: [giftbox, giftbox, giftbox, giftbox],
+    tagline: "Compact gift of assorted nuts",
+    variants: [{ weight: "500g", price: 749 }],
+    description: "A compact box of handpicked dry fruits and nuts, neatly packed for small gestures. Great for colleagues, neighbours and thank-you gifts.",
+    benefits: ["Assorted dry fruits and nuts", "Compact, elegant box", "Ideal for small gifting", "Freshly packed"],
+    nutrition: nutrition(580, 17, 30, 44, 7, 120, 4),
+    storage: STORAGE_GIFT, delivery: DELIVERY_GIFT,
+    rating: 4.7, reviews: 52, badge: "New",
+  },
+  {
+    id: "gift-classic", categoryId: CATEGORY_IDS.GIFT_BOXES, name: "Classic Gift Box", price: 999, weight: "750g",
+    image: giftbox, images: [giftbox, giftbox, giftbox, giftbox],
+    tagline: "Perfect for every celebration",
+    variants: [{ weight: "750g", price: 999 }],
+    description: "A classic assortment of cashews, almonds, raisins and more in a beautiful gift box. A dependable choice for any celebration.",
+    benefits: ["Classic assorted selection", "Beautiful gift packaging", "Perfect for festivals", "Freshly packed"],
+    nutrition: nutrition(580, 17, 30, 44, 7, 120, 4),
+    storage: STORAGE_GIFT, delivery: DELIVERY_GIFT,
+    rating: 4.8, reviews: 112,
+  },
+  {
+    id: "gift-premium", categoryId: CATEGORY_IDS.GIFT_BOXES, name: "Premium Gift Box", price: 1499, weight: "1kg",
+    image: giftbox, images: [giftbox, giftbox, giftbox, giftbox],
+    tagline: "Luxury assorted dry fruits",
+    variants: [{ weight: "1kg", price: 1499 }],
+    description: "A luxury selection of premium cashews, almonds, pistachios and more. Elegantly presented for weddings, festivals and corporate gifting.",
+    benefits: ["Premium grade dry fruits", "Luxury gift packaging", "Ideal for weddings and corporate gifting", "Generous 1kg assortment"],
+    nutrition: nutrition(580, 17, 30, 44, 7, 120, 4),
+    storage: STORAGE_GIFT, delivery: DELIVERY_GIFT,
+    rating: 4.9, reviews: 98, badge: "Best Seller",
+  },
+  {
+    id: "gift-royal", categoryId: CATEGORY_IDS.GIFT_BOXES, name: "Royal Gift Hamper", price: 1999, weight: "1.5kg",
+    image: giftbox, images: [giftbox, giftbox, giftbox, giftbox],
+    tagline: "A royal festive selection",
+    variants: [{ weight: "1.5kg", price: 1999 }],
+    description: "A generous hamper of jumbo nuts, dates and dried fruits in separate compartments. A rich choice for big celebrations.",
+    benefits: ["Jumbo nuts and premium dates", "Separate compartments for each item", "Festive, rich presentation", "Generous 1.5kg size"],
+    nutrition: nutrition(580, 17, 30, 44, 7, 120, 4),
+    storage: STORAGE_GIFT, delivery: DELIVERY_GIFT,
+    rating: 4.8, reviews: 41, badge: "Premium",
+  },
+  {
+    id: "gift-deluxe", categoryId: CATEGORY_IDS.GIFT_BOXES, name: "Deluxe Family Hamper", price: 2499, weight: "2kg",
+    image: giftbox, images: [giftbox, giftbox, giftbox, giftbox],
+    tagline: "Elegant festive gifting",
+    variants: [{ weight: "2kg", price: 2499 }],
+    description: "Our largest hamper with a full range of nuts, dates and dried fruits for the whole family. Made for festivals and grand gifting.",
+    benefits: ["Largest assortment", "Something for the whole family", "Elegant festive packaging", "Generous 2kg size"],
+    nutrition: nutrition(580, 17, 30, 44, 7, 120, 4),
+    storage: STORAGE_GIFT, delivery: DELIVERY_GIFT,
+    rating: 4.9, reviews: 67,
+  },
 
-        {
-            name: "Fat",
-            value: 44,
-            unit: "g",
-        },
-
-        {
-            name: "Fiber",
-            value: 3,
-            unit: "g",
-        },
-
-        {
-            name: "Calcium",
-            value: 37,
-            unit: "mg",
-        },
-
-        {
-            name: "Iron",
-            value: 6,
-            unit: "mg",
-        },
-
-    ],
-},
-    storage: [],
-    delivery: [],
-    rating: 0,
-    reviews: 0
+  // ============================ Offer Zone ============================
+  {
+    id: "offer-cashew-w210", categoryId: CATEGORY_IDS.OFFER_ZONE, name: "Jumbo W210 Cashew (Offer)", price: 419, weight: "250g",
+    image: cashew, images: [cashew, cashew, cashew, cashew],
+    tagline: "Jumbo cashews at a special price",
+    variants: [{ weight: "250g", price: 419 }, { weight: "500g", price: 819 }, { weight: "1kg", price: 1599 }],
+    description: "Jumbo W210 cashews are the largest whole grade, hand-selected for their creamy taste and snappy bite. Limited-time offer pricing on every pack size.",
+    benefits: ["Largest whole cashew grade", "Rich in healthy fats", "Good source of magnesium", "Limited-time offer price"],
+    nutrition: nutrition(553, 18, 30, 44, 3, 37, 6),
+    storage: STORAGE_NUTS, delivery: DELIVERY_STD,
+    rating: 4.9, reviews: 96, badge: "Offer",
+    isOffer: true,
+  },
+  {
+    id: "offer-cashew-premium", categoryId: CATEGORY_IDS.OFFER_ZONE, name: "Premium W240 Cashew (Offer)", price: 319, weight: "250g",
+    image: cashew, images: [cashew, cashew, cashew, cashew],
+    tagline: "Best-selling cashews, now cheaper",
+    variants: [{ weight: "250g", price: 319 }, { weight: "500g", price: 629 }, { weight: "1kg", price: 1229 }],
+    description: "Premium W240 whole cashews with a rich taste and crunchy texture, vacuum packed for freshness. Enjoy our best seller at a reduced offer price.",
+    benefits: ["Rich in protein", "Heart healthy", "High in magnesium", "Limited-time offer price"],
+    nutrition: nutrition(553, 18, 30, 44, 3, 37, 6),
+    storage: STORAGE_NUTS, delivery: DELIVERY_STD,
+    rating: 4.9, reviews: 128, badge: "Offer",
+    isOffer: true,
+  },
+  {
+    id: "offer-cashew-salted", categoryId: CATEGORY_IDS.OFFER_ZONE, name: "Roasted Salted Cashews (Offer)", price: 289, weight: "250g",
+    image: cashew, images: [cashew, cashew, cashew, cashew],
+    tagline: "Tea-time snack at offer price",
+    variants: [{ weight: "250g", price: 289 }, { weight: "500g", price: 559 }, { weight: "1kg", price: 1089 }],
+    description: "Whole cashews dry roasted to a golden crunch and lightly seasoned with salt. Ready to eat straight from the pack, now at a special price.",
+    benefits: ["Ready-to-eat snack", "Lightly salted", "Dry roasted, not fried", "Limited-time offer price"],
+    nutrition: nutrition(574, 15, 32, 46, 3, 40, 6),
+    storage: STORAGE_NUTS, delivery: DELIVERY_STD,
+    rating: 4.8, reviews: 117, badge: "Offer",
+    isOffer: true,
+  },
+  {
+    id: "offer-cashew-almond-combo", categoryId: CATEGORY_IDS.OFFER_ZONE, name: "Cashew & Almond Combo", price: 599, weight: "500g",
+    image: cashew, images: [cashew, almond, cashew, almond],
+    tagline: "Two favourites in one saver pack",
+    variants: [{ weight: "500g", price: 599 }, { weight: "1kg", price: 1149 }],
+    description: "An equal mix of premium W240 cashews and California almonds in one pack. Saves money compared to buying the two separately.",
+    benefits: ["Half cashew, half almond", "Better value than buying separately", "Protein and Vitamin E rich", "Great for gifting"],
+    nutrition: nutrition(566, 19.5, 26, 47, 7.5, 153, 5),
+    storage: STORAGE_NUTS, delivery: DELIVERY_STD,
+    rating: 4.8, reviews: 58, badge: "Offer",
+    isOffer: true,
+  },
+  {
+    id: "offer-festive-combo", categoryId: CATEGORY_IDS.OFFER_ZONE, name: "Festive Dry Fruits Combo", price: 1099, weight: "1kg",
+    image: giftbox, images: [giftbox, cashew, almond, raisin],
+    tagline: "Cashew, almond, pista & raisins",
+    variants: [{ weight: "1kg", price: 1099 }, { weight: "2kg", price: 2099 }],
+    description: "A festive assortment of cashews, almonds, pistachios and raisins packed together at a combo price. A ready-made choice for festivals and family gatherings.",
+    benefits: ["Four popular dry fruits in one pack", "Combo price saving", "Festive, ready-to-gift packing", "Fresh and vacuum packed"],
+    nutrition: nutrition(540, 16, 38, 38, 6, 110, 4),
+    storage: STORAGE_GIFT, delivery: DELIVERY_GIFT,
+    rating: 4.8, reviews: 73, badge: "Offer",
+    isOffer: true,
+  },
+  {
+    id: "offer-dates-raisins-saver", categoryId: CATEGORY_IDS.OFFER_ZONE, name: "Dates & Raisins Saver Pack", price: 399, weight: "500g",
+    image: giftbox, images: [giftbox, raisin, giftbox, raisin],
+    tagline: "Everyday sweet energy, low price",
+    variants: [{ weight: "500g", price: 399 }, { weight: "1kg", price: 769 }],
+    description: "Soft Kimia dates and green kishmish raisins in one pack for everyday eating. A budget-friendly pack that is naturally sweet and rich in fibre.",
+    benefits: ["Dates and raisins in one pack", "Naturally sweet, no added sugar", "Good source of fibre and iron", "Budget-friendly saver pack"],
+    nutrition: nutrition(290, 2.8, 77, 0.4, 6, 45, 1.5),
+    storage: STORAGE_DRIED, delivery: DELIVERY_STD,
+    rating: 4.6, reviews: 45, badge: "Offer",
+    isOffer: true,
   },
 ];
 
-// const CATEGORIES = [
-//   { name: "Cashew",category: "Cashew", image: cashew },
-//   { name: "Almond",category: "Almond", image: almond },
-//   { name: "Pistachio",category: "Pista", image: pistachio },
-//   { name: "Anjeer",category: "Anjeer", image: fig },
-//   { name: "Walnut",category: "Walnut", image: walnut },
-//   { name: "Dates",category: "Dates", image: giftbox },
-//   { name: "Raisins",category: "Raisin", image: giftbox },
-//   { name: "Pista",category: "Pista", image: giftbox },
-//   { name: "Apricot",category: "Apricot", image: giftbox },
-//   { name: "Seeds",category: "Seeds", image: giftbox },
-//   { name: "Snacks",category: "Snacks", image: giftbox },
-//   { name: "Dehydrated Fruits",category: "Dehydrated Fruits", image: giftbox },
-//   { name: "Spices",category: "Spices", image: giftbox },
-//   { name: "Gift Boxes",category: "GiftBoxes", image: giftbox },
-// ];
-
-
+/* ------------------------------------------------------------------ */
+/* CATEGORIES (parent)                                                 */
+/* ------------------------------------------------------------------ */
 
 const CATEGORIES: Category[] = [
-  {
-    id: CATEGORY_IDS.CASHEW,
-    name: "Cashew",
-    image: cashew,
-  },
-  {
-    id: CATEGORY_IDS.ALMOND,
-    name: "Almond",
-    image: almond,
-  },
-  {
-    id: CATEGORY_IDS.PISTACHIO,
-    name: "Pistachio",
-    image: pistachio,
-  },
-  {
-    id: CATEGORY_IDS.ANJEER,
-    name: "Anjeer",
-    image: fig,
-  },
-  {
-    id: CATEGORY_IDS.WALNUT,
-    name: "Walnut",
-    image: walnut,
-  },
-  {
-    id: CATEGORY_IDS.DATES,
-    name: "Dates",
-    image: giftbox,
-  },
-  {
-    id: CATEGORY_IDS.RAISINS,
-    name: "Raisins",
-    image: giftbox,
-  },
-  {
-    id: CATEGORY_IDS.SEEDS,
-    name: "Seeds",
-    image: giftbox,
-  },
-  {
-    id: CATEGORY_IDS.SNACKS,
-    name: "Snacks",
-    image: giftbox,
-  },
-  {
-    id: CATEGORY_IDS.DEHYDRATED_FRUITS,
-    name: "Dehydrated Fruits",
-    image: giftbox,
-  },
-  {
-    id: CATEGORY_IDS.SPICES,
-    name: "Spices",
-    image: giftbox,
-  },
-  {
-    id: CATEGORY_IDS.GIFT_BOXES,
-    name: "Gift Boxes",
-    image: giftbox,
-  },
+  { id: CATEGORY_IDS.CASHEW, name: "Cashew", image: cashew },
+  { id: CATEGORY_IDS.ALMOND, name: "Almond", image: almond },
+  { id: CATEGORY_IDS.PISTACHIO, name: "Pistachio", image: pistachio },
+  { id: CATEGORY_IDS.ANJEER, name: "Anjeer", image: fig },
+  { id: CATEGORY_IDS.WALNUT, name: "Walnut", image: walnut },
+  { id: CATEGORY_IDS.DATES, name: "Dates", image: giftbox },
+  { id: CATEGORY_IDS.RAISINS, name: "Raisins", image: raisin },
+  { id: CATEGORY_IDS.SEEDS, name: "Seeds", image: giftbox },
+  { id: CATEGORY_IDS.SNACKS, name: "Snacks", image: namkeen },
+  { id: CATEGORY_IDS.DEHYDRATED_FRUITS, name: "Dehydrated Fruits", image: giftbox },
+  { id: CATEGORY_IDS.SPICES, name: "Spices", image: giftbox },
+  { id: CATEGORY_IDS.GIFT_BOXES, name: "Gift Boxes", image: giftbox },
+  { id: CATEGORY_IDS.OFFER_ZONE, name: "Offer Zone", image: giftbox },
 ];
+
+export const getProductsByCategory = (categoryId: number) =>
+  PRODUCTS.filter((p) => p.categoryId === categoryId);
 
 export { CATEGORIES, PRODUCTS };

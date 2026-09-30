@@ -15,25 +15,10 @@ import ProductSections from "@/components/home/ProductSections";
 import ProductCard from "@/components/ProductCard";
 import Footer from "@/components/layout/Footer";
 import CategorySection from "@/components/home/CategorySection";
+import OfferSection from "@/components/home/OfferSection";
 export const Route = createFileRoute("/")({
   component: Index,
 });
-
-// Friendly display names for each category
-const CATEGORY_LABELS: Record<number, string> = {
-  [CATEGORY_IDS.CASHEW]: "DRY FRUITS",
-  [CATEGORY_IDS.ALMOND]: "NUTS",
-  [CATEGORY_IDS.PISTACHIO]: "SEEDS",
-  [CATEGORY_IDS.ANJEER]: "BERRIES",
-  [CATEGORY_IDS.WALNUT]: "SPICES",
-  [CATEGORY_IDS.DATES]: "DATES",
-  [CATEGORY_IDS.RAISINS]: "HEALTHY SNACKS",
-  [CATEGORY_IDS.SEEDS]: "PODULU",
-  [CATEGORY_IDS.SNACKS]: "RICE & MILLETS",
-  [CATEGORY_IDS.DEHYDRATED_FRUITS]: "Dehydrated Fruits",
-  [CATEGORY_IDS.SPICES]: "Spices",
-  [CATEGORY_IDS.GIFT_BOXES]: "Gift Boxes",
-};
 
 
 function Index() {
@@ -44,6 +29,7 @@ function Index() {
       <div className="min-h-screen bg-background font-sans">
 
         <Hero />
+        <OfferSection />
         <CategoryGrid
           selectedCategoryId={selectedCategoryId}
           onCategorySelect={setSelectedCategoryId}
