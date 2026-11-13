@@ -1,3 +1,5 @@
+import { useRouterState } from "@tanstack/react-router";
+import WhatsAppHelp from "../WhatsAppHelp";
 import type { ReactNode } from "react";
 
 import Header from "./Header";
@@ -8,20 +10,24 @@ type Props = {
   children: ReactNode;
 };
 
-export default function AppLayout({
-  children,
-}: Props) {
+export default function AppLayout({ children }: Props) {
+  const isAdmin = useRouterState({
+    select: (state) => state.location.pathname.startsWith("/admin"),
+  });
   return (
     <>
       <Header />
 
-      <main>
-        {children}
-      </main>
+      <main className="min-w-0">{children}</main>
 
       <Footer />
 
-      <FloatingCart />
+      {!isAdmin && (
+        <>
+          <WhatsAppHelp />
+          <FloatingCart />
+        </>
+      )}
     </>
   );
 }

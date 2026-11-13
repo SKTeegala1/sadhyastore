@@ -1,104 +1,16 @@
+import { useNavigate } from "@tanstack/react-router";
 import { useCart } from "@/lib/cart";
 import { useEffect, useRef, useState } from "react";
-import {
-  ShoppingBag,
-  X,
-  Minus,
-  Plus,
-  MessageCircle,
-  MapPin,
-  Navigation,
-} from "lucide-react";
+import { ShoppingBag, X, Minus, Plus, MessageCircle } from "lucide-react";
 
 const WHATSAPP = "919666585143";
-type DeliveryDetails = {
-  name: string;
-  phone: string;
-  address: string;
-  mapLink: string;
-};
 
 export default function FloatingCart() {
   const { items, open, setOpen, setQty, remove, flies, bump, clear } = useCart();
+  const navigate = useNavigate();
   const cartRef = useRef<HTMLButtonElement>(null);
   const [target, setTarget] = useState({ x: 0, y: 0 });
   const [animBump, setAnimBump] = useState(false);
-
-  
-  const [showAddressForm, setShowAddressForm] = useState(false);
-  const [delivery, setDelivery] = useState<DeliveryDetails>({
-    name: "",
-    phone: "",
-    address: "",
-    mapLink: "",
-  });
-
-  const updateDelivery = (field: keyof DeliveryDetails, value: string) => {
-    setDelivery((current) => ({ ...current, [field]: value }));
-  };
-
-  const useCurrentLocation = () => {
-    if (!navigator.geolocation) {
-      alert("Location is not supported by this browser.");
-      return;
-    }
-
-    navigator.geolocation.getCurrentPosition(
-      ({ coords }) => {
-        const link = `https://www.google.com/maps?q=${coords.latitude},${coords.longitude}`;
-        updateDelivery("mapLink", link);
-      },
-      () => {
-        alert("Unable to access your location. Please paste a Google Maps link.");
-      },
-      { enableHighAccuracy: true }
-    );
-  };
-
-  const placeOrder = () => {
-    if (!showAddressForm) {
-      setShowAddressForm(true);
-      return;
-    }
-
-    if (
-      !delivery.name.trim() ||
-      !delivery.phone.trim() ||
-      !delivery.address.trim()
-    ) {
-      alert("Please enter your name, phone number, and delivery address.");
-      return;
-    }
-
-    const lines = items
-      .map(
-        (i) =>
-          `• ${i.name} (${i.weight}) × ${i.qty} — ₹${i.price * i.qty}`
-      )
-      .join("\n");
-
-    const locationText = delivery.mapLink.trim()
-      ? `\nGoogle Maps location: ${delivery.mapLink.trim()}`
-      : "";
-
-    const msg = `Hi Sadhya Snak Box! I'd like to place an order:
-
-${lines}
-
-*Total: ₹${total}*
-
-Customer name: ${delivery.name}
-Phone: ${delivery.phone}
-Delivery address: ${delivery.address}${locationText}
-
-Please confirm availability. Thank you!`;
-
-    window.open(
-      `https://wa.me/${WHATSAPP}?text=${encodeURIComponent(msg)}`,
-      "_blank"
-    );
-  };
-
 
   useEffect(() => {
     if (cartRef.current) {
@@ -117,11 +29,10 @@ Please confirm availability. Thank you!`;
   const count = items.reduce((s, i) => s + i.qty, 0);
   const total = items.reduce((s, i) => s + i.qty * i.price, 0);
 
-  // const placeOrder = () => {
-  //   const lines = items.map((i) => `• ${i.name} (${i.weight}) × ${i.qty} — ₹${i.price * i.qty}`).join("\n");
-  //   const msg = `Hi Sadhya Snak Box! I'd like to place an order:\n\n${lines}\n\n*Total: ₹${total}*\n\nPlease confirm availability. Thank you!`;
-  //   window.open(`https://wa.me/${WHATSAPP}?text=${encodeURIComponent(msg)}`, "_blank");
-  // };
+  const placeOrder = () => {
+    setOpen(false);
+    void navigate({ to: '/checkout' });
+  };
 
   return (
     <>
@@ -220,81 +131,13 @@ Please confirm availability. Thank you!`;
                   <span className="font-medium">Total</span>
                   <span className="font-display font-bold text-2xl text-primary">₹{total}</span>
                 </div>
-
-
-                {showAddressForm && (
-                  <div className="space-y-3 rounded-xl border bg-background p-4">
-                    <h3 className="font-semibold">Delivery details</h3>
-
-                    <input
-                      value={delivery.name}
-                      onChange={(e) => updateDelivery("name", e.target.value)}
-                      placeholder="Full name"
-                      className="w-full rounded-lg border bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary"
-                    />
-
-                    <input
-                      value={delivery.phone}
-                      onChange={(e) => updateDelivery("phone", e.target.value)}
-                      placeholder="Phone number"
-                      type="tel"
-                      className="w-full rounded-lg border bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary"
-                    />
-
-                    <textarea
-                      value={delivery.address}
-                      onChange={(e) =>
-                        updateDelivery("address", e.target.value)
-                      }
-                      placeholder="Complete delivery address"
-                      rows={3}
-                      className="w-full resize-none rounded-lg border bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary"
-                    />
-
-                    <input
-                      value={delivery.mapLink}
-                      onChange={(e) =>
-                        updateDelivery("mapLink", e.target.value)
-                      }
-                      placeholder="Paste Google Maps link (optional)"
-                      type="url"
-                      className="w-full rounded-lg border bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary"
-                    />
-
-                    <div className="flex flex-col gap-2 sm:flex-row">
-                      <a
-                        href="https://www.google.com/maps"
-                        target="_blank"
-                        rel="noreferrer"
-                        className="flex flex-1 items-center justify-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium hover:bg-muted"
-                      >
-                        <MapPin className="h-4 w-4" />
-                        Choose on Google Maps
-                      </a>
-
-                      <button
-                        type="button"
-                        onClick={useCurrentLocation}
-                        className="flex flex-1 items-center justify-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium hover:bg-muted"
-                      >
-                        <Navigation className="h-4 w-4" />
-                        Use my location
-                      </button>
-                    </div>
-                  </div>
-                )}
-
                 <button
                   onClick={placeOrder}
                   className="w-full py-4 rounded-full text-primary-foreground font-semibold flex items-center justify-center gap-2 hover:opacity-95 transition"
                   style={{ background: "var(--gradient-hero)", boxShadow: "var(--shadow-warm)" }}
                 >
-                  <span className="flex items-center justify-center gap-2">
-                    <MessageCircle className="h-5 w-5" />
-                    {showAddressForm
-                      ? "Send Order on WhatsApp"
-                      : "Place Order on WhatsApp"}
-                  </span>
+                  <MessageCircle className="w-5 h-5" />
+                  Continue to checkout
                 </button>
                 <button onClick={clear} className="w-full text-sm text-muted-foreground hover:text-destructive">
                   Clear cart

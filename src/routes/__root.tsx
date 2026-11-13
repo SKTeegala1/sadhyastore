@@ -9,6 +9,7 @@ import {
 } from "@tanstack/react-router";
 import { type ReactNode } from "react";
 import { CartProvider } from "@/lib/cart";
+import { AuthProvider } from "@/lib/auth";
 import AppLayout from "@/components/layout/AppLayout";
 
 import appCss from "../styles.css?url";
@@ -119,11 +120,11 @@ function RootComponent() {
 
   return (
    <QueryClientProvider client={queryClient}>
-  <CartProvider>
+  <AuthProvider><CartProvider>
     <AppLayout>
       <Outlet />
     </AppLayout>
-  </CartProvider>
+  </CartProvider></AuthProvider>
 </QueryClientProvider>
   );
 }

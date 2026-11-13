@@ -1,123 +1,144 @@
-import { Sparkles, ChevronLeft, ChevronRight } from "lucide-react";
-import { useState, useEffect, useCallback, useRef } from "react";
-import banner1 from "@/assets/slider/Banner1.png";
-import banner2 from "@/assets/slider/Banner2.png";
-import banner3 from "@/assets/slider/Banner3.png";
-import banner4 from "@/assets/slider/Banner4.png";
-import banner5 from "@/assets/slider/Banner5.png";
-import banner6 from "@/assets/slider/Banner6.png";
-import banner7 from "@/assets/slider/Banner7.png";
-import banner9 from "@/assets/slider/Banner9.png";
-import banner10 from "@/assets/slider/Banner10.png";
-import banner0 from "@/assets/slider/Banner0.png";
-
-const slides = [
-    { src: banner1, alt: "Assorted Sadhya Snack Boxes - Banner 1" },
-    { src: banner0, alt: "Assorted Sadhya Snack Boxes - Banner 0" },
-    { src: banner2, alt: "Assorted Sadhya Snack Boxes - Banner 2" },
-  { src: banner3, alt: "Assorted Sadhya Snack Boxes - Banner 3" },
-  { src: banner4, alt: "Assorted Sadhya Snack Boxes - Banner 4" },
-  { src: banner5, alt: "Assorted Sadhya Snack Boxes - Banner 5" },
-  { src: banner6, alt: "Assorted Sadhya Snack Boxes - Banner 6" },
-  { src: banner7, alt: "Assorted Sadhya Snack Boxes - Banner 7" },
-  { src: banner9, alt: "Assorted Sadhya Snack Boxes - Banner 9" },
-  { src: banner10, alt: "Assorted Sadhya Snack Boxes - Banner 10" },
-];
-
-const AUTOPLAY_MS = 2000;
-
-function HeroCarousel() {
-  const [index, setIndex] = useState(0);
-  const [isPaused, setIsPaused] = useState(false);
-  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
-
-  const goTo = useCallback((i: number) => {
-    setIndex(((i % slides.length) + slides.length) % slides.length);
-  }, []);
-
-  const next = useCallback(() => goTo(index + 1), [goTo, index]);
-  const prev = useCallback(() => goTo(index - 1), [goTo, index]);
-
+import { ChevronLeft, ChevronRight, Pause, Play } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
+import { DEFAULT_SLIDES, useSlides } from "@/lib/slides";
+export default function Hero() {
+  const { data, isPending, error } = useSlides();
+  const slides = data?.configured ? data.slides : DEFAULT_SLIDES;
+  const [selected, setSelected] = useState(0);
+  const [paused, setPaused] = useState(false);
+  const [hovered, setHovered] = useState(false);
+  const [focused, setFocused] = useState(false);
+  const [reducedMotion, setReducedMotion] = useState(false);
+  const touch = useRef<number | null>(null);
+  const index = slides.length ? selected % slides.length : 0;
   useEffect(() => {
-    if (isPaused) return;
-    timerRef.current = setInterval(() => {
-      setIndex((prev) => (prev + 1) % slides.length);
-    }, AUTOPLAY_MS);
-    return () => {
-      if (timerRef.current) clearInterval(timerRef.current);
-    };
-  }, [isPaused]);
-
+    const media = window.matchMedia("(prefers-reduced-motion: reduce)");
+    setReducedMotion(media.matches);
+    const changed = () => setReducedMotion(media.matches);
+    media.addEventListener("change", changed);
+    return () => media.removeEventListener("change", changed);
+  }, []);
+  useEffect(() => {
+    if (paused || hovered || focused || reducedMotion || slides.length < 2) return;
+    const timer = window.setInterval(() => {
+      if (!document.hidden) setSelected((current) => (current + 1) % slides.length);
+    }, 5000);
+    return () => window.clearInterval(timer);
+  }, [paused, hovered, focused, reducedMotion, slides.length]);
+  function step(delta: number) {
+    setSelected((current) => (current + delta + slides.length) % slides.length);
+  }
+  if (isPending)
+    return (
+      <section
+        aria-label="Loading promotional slides"
+        className="aspect-[8/3] w-full animate-pulse bg-muted motion-reduce:animate-none"
+      />
+    );
+  if (error || !slides.length) return null;
   return (
-    <div
-      className="relative"
-      onMouseEnter={() => setIsPaused(true)}
-      onMouseLeave={() => setIsPaused(false)}
+    <section
+      aria-label="Sadhya promotional slides"
+      aria-roledescription="carousel"
+      className="w-full"
     >
-      <div className="absolute -inset-8 rounded-full blur-3xl opacity-40" style={{ background: "var(--gradient-warm)" }} />
-
-      <div className="relative rounded-3xl shadow-2xl overflow-hidden aspect-[24/9]">
-        {slides.map((slide, i) => (
-          <img
-            key={slide.src}
-            src={slide.src}
-            alt={slide.alt}
-            width={1600}
-            height={900}
-            className="absolute inset-0 w-full h-full object-cover transition-opacity duration-700 ease-in-out"
-            style={{ opacity: i === index ? 1 : 0, pointerEvents: i === index ? "auto" : "none" }}
-          />
-        ))}
-
-        {/* Prev / Next arrows */}
-        <button
-          type="button"
-          onClick={prev}
-          aria-label="Previous slide"
-          className="absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-background/70 backdrop-blur border flex items-center justify-center hover:bg-background transition"
+      <div
+        className="relative w-full overflow-hidden bg-muted/20"
+        onMouseEnter={() => setHovered(true)}
+        onMouseLeave={() => setHovered(false)}
+        onFocusCapture={() => setFocused(true)}
+        onBlurCapture={(e) => {
+          if (!e.currentTarget.contains(e.relatedTarget)) setFocused(false);
+        }}
+        onTouchStart={(e) => {
+          touch.current = e.touches[0].clientX;
+        }}
+        onTouchEnd={(e) => {
+          if (touch.current === null) return;
+          const distance = e.changedTouches[0].clientX - touch.current;
+          touch.current = null;
+          if (Math.abs(distance) > 50 && slides.length > 1) step(distance > 0 ? -1 : 1);
+        }}
+      >
+        <div
+          className={
+            "relative w-full " +
+            (slides.some((slide) => slide.mobileImage)
+              ? "aspect-[4/3] sm:aspect-[8/3]"
+              : "aspect-[8/3]")
+          }
+          style={{ touchAction: "pan-y" }}
         >
-          <ChevronLeft className="w-4 h-4 text-secondary" />
-        </button>
-        <button
-          type="button"
-          onClick={next}
-          aria-label="Next slide"
-          className="absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-background/70 backdrop-blur border flex items-center justify-center hover:bg-background transition"
-        >
-          <ChevronRight className="w-4 h-4 text-secondary" />
-        </button>
-
-        {/* Dots */}
-        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-2">
-          {slides.map((_, i) => (
-            <button
-              key={i}
-              type="button"
-              onClick={() => goTo(i)}
-              aria-label={`Go to slide ${i + 1}`}
-              className="h-2 rounded-full transition-all"
-              style={{
-                width: i === index ? "1.5rem" : "0.5rem",
-                background: i === index ? "var(--gradient-hero, #fff)" : "rgba(255,255,255,0.6)",
-              }}
-            />
+          {slides.map((slide, i) => (
+            <picture
+              key={slide.id}
+              aria-hidden={i !== index}
+              className={
+                "absolute inset-0 block transition-opacity duration-500 motion-reduce:transition-none " +
+                (i === index ? "opacity-100" : "pointer-events-none opacity-0")
+              }
+            >
+              {slide.mobileImage && (
+                <source media="(max-width: 639px)" srcSet={slide.mobileImage} />
+              )}
+              <img
+                src={slide.image}
+                alt={slide.alt}
+                loading={i === 0 ? "eager" : "lazy"}
+                className="h-full w-full object-cover object-center"
+              />
+            </picture>
           ))}
         </div>
-      </div>
-    </div>
-  );
-}
-
-export default function Hero() {
-  return (
-    <section className="relative overflow-hidden">
-      <div className="absolute inset-0" style={{ background: "linear-gradient(135deg, oklch(0.94 0.08 70), oklch(0.88 0.14 55))" }} />
-      <div className="relative max-w-8xl mx-auto px-6 py-10 md:py-10  md:grid-cols-2 gap-10 items-center">
-         <div className="relative animate-float-up">
-          <HeroCarousel />
-        </div>
+        {slides.length > 1 && (
+          <>
+            <button
+              type="button"
+              aria-label="Previous slide"
+              onClick={() => step(-1)}
+              className="absolute left-2 top-1/2 z-10 inline-flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-black/40 text-white shadow-sm transition hover:bg-black/60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-white sm:left-5 sm:h-11 sm:w-11"
+            >
+              <ChevronLeft className="h-6 w-6" />
+            </button>
+            <button
+              type="button"
+              aria-label="Next slide"
+              onClick={() => step(1)}
+              className="absolute right-2 top-1/2 z-10 inline-flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-black/40 text-white shadow-sm transition hover:bg-black/60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-white sm:right-5 sm:h-11 sm:w-11"
+            >
+              <ChevronRight className="h-6 w-6" />
+            </button>
+            <div className="absolute bottom-2 left-1/2 z-10 flex max-w-[calc(100%-7rem)] -translate-x-1/2 items-center overflow-x-auto rounded-full bg-black/35 px-2 sm:bottom-4">
+              {slides.map((slide, i) => (
+                <button
+                  key={slide.id}
+                  type="button"
+                  aria-label={`Go to slide ${i + 1}`}
+                  aria-current={i === index ? "true" : undefined}
+                  onClick={() => setSelected(i)}
+                  className="grid h-8 w-5 shrink-0 place-items-center sm:h-10 sm:w-6"
+                >
+                  <span
+                    className={
+                      "h-2 rounded-full shadow-sm " +
+                      (i === index ? "w-4 bg-white" : "w-2 bg-white/50")
+                    }
+                  />
+                </button>
+              ))}
+            </div>
+            <button
+              type="button"
+              aria-label={paused ? "Play slideshow" : "Pause slideshow"}
+              aria-pressed={paused}
+              onClick={() => setPaused((v) => !v)}
+              className="absolute bottom-2 right-2 z-10 inline-flex h-8 w-8 items-center justify-center rounded-full bg-black/40 text-white hover:bg-black/60 sm:bottom-4 sm:right-5 sm:h-10 sm:w-10"
+            >
+              {paused ? <Play className="h-4 w-4" /> : <Pause className="h-4 w-4" />}
+            </button>
+          </>
+        )}
       </div>
     </section>
   );
-  
 }

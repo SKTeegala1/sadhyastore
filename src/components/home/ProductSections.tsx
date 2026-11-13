@@ -1,63 +1,77 @@
-import { PRODUCTS, CATEGORIES, CATEGORY_IDS } from "@/data/products";
+import { useCatalog } from "@/lib/catalog";
+import { useCategories } from "@/lib/categories";
+import ProductCard from "@/components/ProductCard";
 import CategorySection from "./CategorySection";
-import { PRODUCTS_PER_ROW } from "@/constants/product";
-
 export default function ProductSections() {
-  const categoryIdsToShow = Object.values(CATEGORY_IDS);
-
-  return (
-    <section
-      id="shop"
-      className="max-w-7xl mx-auto px-6 py-10 scroll-mt-28"
-    >
-      <div className="text-center mb-14">
-        <p className="text-primary font-semibold uppercase tracking-widest text-xs">
-          Our Bestsellers
-        </p>
-
-        <h2 className="font-display text-4xl md:text-5xl font-bold text-secondary mt-2">
-          Fresh from the Sadhya
-        </h2>
-
-        <p className="text-muted-foreground mt-3 max-w-xl mx-auto">
-          Each pack is hand-checked, vacuum-sealed and dispatched within 24
-          hours.
-        </p>
-      </div>
-
-      <div className="space-y-16">
-        {categoryIdsToShow.map((categoryId) => 
-        {
-
-            
-    const category = CATEGORIES.find(
-        c => c.id === categoryId
-    );
-
-    if (!category) return null;
-
-    const categoryProducts = PRODUCTS.filter(
-        p => p.categoryId === categoryId
-    );
-
-    const visibleProducts =
-    categoryProducts.slice(0, PRODUCTS_PER_ROW);
-
-    if (categoryProducts.length === 0)
-        return null;
-
+  const { products, isPending, error } = useCatalog();
+  const { categories, isPending: categoriesLoading, error: categoriesError } = useCategories();
+  const featured = products.filter((p) => p.isBestSeller);
+  const bestsellers = (featured.length ? featured : products).slice(0, 8);
+  const offers = categories.find((category) => category.id === 101);
+  const collections = categories.filter((category) => category.id !== offers?.id);
+  if (isPending || categoriesLoading)
     return (
-       <CategorySection
-    key={category.id}
-    category={category}
-    products={visibleProducts}
-/>
+      <p role="status" className="p-10 text-center">
+        Loading products…
+      </p>
     );
-
-})}
-
-      </div>
-
-    </section>
+  if (error || categoriesError)
+    return (
+      <p role="alert" className="p-10 text-center">
+        Products are unavailable. Please try again later.
+      </p>
+    );
+  return (
+    <div
+      id="shop"
+      className="mx-auto max-w-7xl scroll-mt-24 space-y-10 px-4 py-10 sm:space-y-14 sm:px-6 sm:py-14"
+    >
+      {offers && (
+        <CategorySection
+          category={offers}
+          products={products.filter((p) => p.categoryId === offers.id || p.isOffer).slice(0, 8)}
+        />
+      )}
+      <section
+        aria-label="Best selling products"
+        className="border-t border-primary/15 pt-8 sm:pt-10"
+      >
+        <div className="mb-6 text-center">
+          <p className="text-xs font-bold uppercase tracking-[.22em] text-primary">
+            Customer favourites
+          </p>
+          <h2 className="mt-3 flex items-center justify-center gap-3 font-display text-2xl font-bold text-secondary sm:text-4xl">
+            <span aria-hidden="true" className="text-base text-primary">
+              ✦
+            </span>
+            Best Selling
+            <span aria-hidden="true" className="text-base text-primary">
+              ✦
+            </span>
+          </h2>
+          <p className="mt-3 text-sm text-muted-foreground">
+            Our handpicked favourites for your everyday pantry.
+          </p>
+        </div>
+        {bestsellers.length ? (
+          <div className="grid grid-cols-2 gap-3 sm:gap-6 lg:grid-cols-4">
+            {bestsellers.map((product) => (
+              <ProductCard key={product.id} product={product} />
+            ))}
+          </div>
+        ) : (
+          <p className="rounded-2xl border border-dashed p-6 text-center text-sm text-muted-foreground">
+            Our best-selling selection is coming soon.
+          </p>
+        )}
+      </section>
+      {collections.map((category) => (
+        <CategorySection
+          key={category.id}
+          category={category}
+          products={products.filter((p) => p.categoryId === category.id).slice(0, 8)}
+        />
+      ))}
+    </div>
   );
 }

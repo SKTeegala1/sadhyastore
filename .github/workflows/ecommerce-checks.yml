@@ -1,0 +1,26 @@
+name: Ecommerce checks
+on:
+  pull_request:
+  push:
+    branches: [main]
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - run: npm ci
+      - run: npm run build
+      - run: npx tsc --noEmit
+      - run: node tests/storefront_logic.cjs
+      - run: node tests/worker_proxy.cjs
+      - run: dotnet build backend/Sadhya.Api
+      - run: python3 tests/api_smoke.py
+      - run: python3 tests/deployment_smoke.py
+      - run: docker build -f backend/Dockerfile -t sadhya-api-ci .

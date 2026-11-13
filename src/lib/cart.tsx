@@ -1,11 +1,4 @@
-import {
-  createContext,
-  useCallback,
-  useContext,
-  useEffect,
-  useState,
-  type ReactNode,
-} from "react";
+import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from "react";
 
 export type ProductVariant = {
   weight: string;
@@ -13,9 +6,9 @@ export type ProductVariant = {
 };
 
 export type NutritionItem = {
-    name: string;
-    value: number;
-    unit: string;
+  name: string;
+  value: number;
+  unit: string;
 };
 
 export type NutritionValue = {
@@ -24,9 +17,9 @@ export type NutritionValue = {
 };
 
 export type NutritionFacts = {
-    servingSize: string;
+  servingSize: string;
 
-    items: NutritionItem[];
+  items: NutritionItem[];
 };
 
 export type Category = {
@@ -37,10 +30,14 @@ export type Category = {
 
 export type Product = {
   id: string;
+  stockQuantity?: number;
+  isActive?: boolean;
+  isBestSeller?: boolean;
+  isOffer?: boolean;
   name: string;
   categoryId: number;
-  image: string;          // Primary image (used by cards & cart animation)
-  images?: string[];      // Product gallery images
+  image: string; // Primary image (used by cards & cart animation)
+  images?: string[]; // Product gallery images
   tagline: string;
 
   price: number;
@@ -61,7 +58,6 @@ export type Product = {
   reviews: number;
 
   badge?: string;
-  isOffer?: boolean;
 };
 
 export type CartItem = Product & {
@@ -77,11 +73,7 @@ type FlyEvent = {
 
 type CartCtx = {
   items: CartItem[];
-  add: (
-    product: Product,
-    from: { x: number; y: number },
-    image: string
-  ) => void;
+  add: (product: Product, from: { x: number; y: number }, image: string) => void;
   remove: (cartKey: string) => void;
   setQty: (cartKey: string, qty: number) => void;
   clear: () => void;
@@ -93,85 +85,91 @@ type CartCtx = {
 
 const CartContext = createContext<CartCtx | null>(null);
 
-export function CartProvider({
-  children,
-}: {
-  children: ReactNode;
-}) {
+export function CartProvider({ children }: { children: ReactNode }) {
   const [items, setItems] = useState<CartItem[]>([]);
+  const [hydrated, setHydrated] = useState(false);
   const [open, setOpen] = useState(false);
   const [flies, setFlies] = useState<FlyEvent[]>([]);
   const [bump, setBump] = useState(0);
 
   useEffect(() => {
-  console.log("CartProvider Mounted");
-
-  return () => {
-    console.log("CartProvider Unmounted");
-  };
-}, []);
-
-  const add = useCallback(
-    (
-      product: Product,
-      from: { x: number; y: number },
-      image: string
-    ) => {
-      const flyId = Date.now() + Math.random();
-
-      setFlies((prev) => [
-        ...prev,
-        {
-          id: flyId,
-          from,
-          image,
-        },
-      ]);
-
-      window.setTimeout(() => {
-        setItems((prevItems) => {
-          const cartKey = `${product.id}-${product.weight}`;
-          const existingItem = prevItems.find(
-    item => item.cartKey === cartKey
-);
-
-          if (existingItem) {
-            return prevItems.map(item =>
-    item.cartKey === cartKey
-        ? {
-              ...item,
-              qty: item.qty + 1,
-          }
-        : item
-);
-          }
-
-
-return [
-    ...prevItems,
-    {
-        ...product,
-        cartKey,
-        qty: 1,
-    },
-];
-        });
-
-        setBump((b) => b + 1);
-
-        setFlies((prev) =>
-          prev.filter((fly) => fly.id !== flyId)
+    try {
+      const saved = JSON.parse(localStorage.getItem("sadhya.cart") ?? "[]");
+      if (Array.isArray(saved))
+        setItems(
+          saved.filter(
+            (i) =>
+              typeof i.id === "string" &&
+              typeof i.cartKey === "string" &&
+              typeof i.weight === "string" &&
+              Number.isFinite(i.price) &&
+              Number.isInteger(i.qty) &&
+              i.qty > 0 &&
+              i.qty <= 100,
+          ),
         );
-      }, 850);
-    },
-    []
-  );
+    } catch {
+      /* Invalid saved cart starts empty. */
+    }
+    setHydrated(true);
+  }, []);
+  useEffect(() => {
+    if (hydrated) {
+      try {
+        localStorage.setItem("sadhya.cart", JSON.stringify(items));
+      } catch {
+        /* Shopping can continue without persistence. */
+      }
+    }
+  }, [items, hydrated]);
 
- const remove = useCallback((cartKey: string) => {
-    setItems(prev =>
-        prev.filter(item => item.cartKey !== cartKey)
-    );
-}, []);
+  const add = useCallback((product: Product, from: { x: number; y: number }, image: string) => {
+    const flyId = Date.now() + Math.random();
+
+    setFlies((prev) => [
+      ...prev,
+      {
+        id: flyId,
+        from,
+        image,
+      },
+    ]);
+
+    window.setTimeout(() => {
+      setItems((prevItems) => {
+        const cartKey = `${product.id}-${product.weight}`;
+        const existingItem = prevItems.find((item) => item.cartKey === cartKey);
+
+        if (existingItem) {
+          return prevItems.map((item) =>
+            item.cartKey === cartKey
+              ? {
+                  ...item,
+                  qty: item.qty + 1,
+                }
+              : item,
+          );
+        }
+
+        return [
+          ...prevItems,
+          {
+            ...product,
+            cartKey,
+            qty: 1,
+          },
+        ];
+      });
+
+      setBump((b) => b + 1);
+
+      setFlies((prev) => prev.filter((fly) => fly.id !== flyId));
+    }, 850);
+  }, []);
+
+  const remove = useCallback((cartKey: string) => {
+    setItems((prev) => prev.filter((item) => item.cartKey !== cartKey));
+  }, []);
 
   const setQty = useCallback((cartKey: string, qty: number) => {
     setItems((prev) => {
@@ -185,7 +183,7 @@ return [
               ...item,
               qty,
             }
-          : item
+          : item,
       );
     });
   }, []);

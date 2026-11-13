@@ -1,9 +1,10 @@
 import { Sparkles } from "lucide-react";
-import { PRODUCTS } from "@/data/products";
+import { useCatalog } from "@/lib/catalog";
 import ProductCard from "@/components/ProductCard";
 
 export default function OfferSection() {
-  const offerProducts = PRODUCTS.filter((product) => product.isOffer);
+  const { products } = useCatalog();
+  const offerProducts = products.filter((product) => product.isOffer);
 
   if (offerProducts.length === 0) return null;
 
