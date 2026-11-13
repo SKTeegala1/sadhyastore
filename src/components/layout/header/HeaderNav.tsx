@@ -3,7 +3,7 @@ import { NAV_ITEMS } from "@/types/NavigationItems";
 
 export default function HeaderNav() {
   return (
-    <nav className="hidden md:flex items-center gap-8 text-sm font-medium">
+    <nav className="hidden xl:flex items-center gap-8 text-sm font-medium">
       {NAV_ITEMS.map((item) => (
         <Link
           key={item.label}

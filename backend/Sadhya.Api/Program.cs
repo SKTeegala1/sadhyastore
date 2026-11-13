@@ -9,6 +9,7 @@ using Microsoft.EntityFrameworkCore;
 using System.Threading.RateLimiting;
 
 var builder = WebApplication.CreateBuilder(args);
+builder.WebHost.ConfigureKestrel(o => o.Limits.MaxRequestBodySize = 6 * 1024 * 1024);
 builder.Services.AddDbContext<StoreDb>(o => {
     var connection = builder.Configuration.GetConnectionString("Store");
     if (builder.Configuration["DatabaseProvider"] == "SqlServer") o.UseSqlServer(connection);
@@ -45,8 +46,9 @@ var app = builder.Build();
 var json = new JsonSerializerOptions(JsonSerializerDefaults.Web);
 using (var scope = app.Services.CreateScope()) {
     var db = scope.ServiceProvider.GetRequiredService<StoreDb>();
-    // Initial schema only. Introduce EF migrations before changing a deployed schema.
+    // Create a new schema, then apply the versioned additive catalog upgrade to existing stores.
     await db.Database.EnsureCreatedAsync();
+    await CatalogUpgrade.Run(db, json);
     var email = builder.Configuration["BootstrapAdmin:Email"];
     var password = builder.Configuration["BootstrapAdmin:Password"];
     if (!string.IsNullOrWhiteSpace(email) && !string.IsNullOrWhiteSpace(password)) {
@@ -101,10 +103,12 @@ api.MapGet("/auth/me", async (ClaimsPrincipal principal, UserManager<Customer> u
 api.MapPost("/auth/logout", async (SignInManager<Customer> signin) => { await signin.SignOutAsync(); return Results.NoContent(); }).RequireAuthorization();
 api.MapGet("/products", async (StoreDb db) => (await db.Products.AsNoTracking().Where(p => p.IsActive).ToListAsync()).Select(p => JsonSerializer.Deserialize<StoreProduct>(p.Json, json)));
 var adminApi = api.MapGroup("/admin").RequireAuthorization("Admin");
+api.MapCatalog(adminApi, json);
 adminApi.MapGet("/products", async (StoreDb db) => (await db.Products.AsNoTracking().ToListAsync()).Select(p => JsonSerializer.Deserialize<StoreProduct>(p.Json, json)));
 adminApi.MapPut("/products/{id}", async (string id, StoreProduct product, StoreDb db) => {
     var error = ValidateProduct(product);
     if (id != product.Id || error is not null) return Results.BadRequest(new { message = error ?? "Product ID does not match." });
+    if (!await db.Categories.AnyAsync(c => c.Id == product.CategoryId)) return Results.BadRequest(new { message = "Choose an existing category." });
     var row = await db.Products.FindAsync(id);
     if (row is null) { row = new ProductRow { Id = id }; db.Products.Add(row); }
     row.Json = JsonSerializer.Serialize(product, json); row.IsActive = product.IsActive; row.StockQuantity = product.StockQuantity;
@@ -113,6 +117,8 @@ adminApi.MapPut("/products/{id}", async (string id, StoreProduct product, StoreD
 adminApi.MapPost("/products/import", async (List<StoreProduct> products, StoreDb db) => {
     if (await db.Products.AnyAsync()) return Results.Conflict(new { message = "Import is only allowed into an empty catalog." });
     if (products.Count == 0 || products.Count > 500 || products.Select(p => p.Id).Distinct().Count() != products.Count || products.Any(p => ValidateProduct(p) is not null)) return Results.BadRequest(new { message = "The catalog contains invalid products." });
+    var categoryIds = await db.Categories.Select(c => c.Id).ToListAsync();
+    if (products.Any(p => !categoryIds.Contains(p.CategoryId))) return Results.BadRequest(new { message = "One or more product categories no longer exist. Add the categories before importing." });
     db.Products.AddRange(products.Select(p => new ProductRow { Id = p.Id, Json = JsonSerializer.Serialize(p, json), StockQuantity = p.StockQuantity, IsActive = p.IsActive }));
     await db.SaveChangesAsync(); return Results.Ok(new { imported = products.Count });
 });
@@ -122,6 +128,7 @@ api.MapGet("/addresses", async (ClaimsPrincipal user, StoreDb db) => {
 }).RequireAuthorization();
 api.MapPost("/addresses", async (AddressInput input, ClaimsPrincipal user, StoreDb db) => {
     if (string.IsNullOrWhiteSpace(input.FullName) || input.FullName.Length > 100 || !Regex.IsMatch(input.Phone ?? "", @"^[6-9]\d{9}$") || string.IsNullOrWhiteSpace(input.Line1) || input.Line1.Length > 200 || (input.Line2?.Length ?? 0) > 200 || string.IsNullOrWhiteSpace(input.City) || input.City.Length > 100 || string.IsNullOrWhiteSpace(input.State) || input.State.Length > 100 || !Regex.IsMatch(input.PostalCode ?? "", @"^[1-9]\d{5}$")) return Results.BadRequest(new { message = "Enter a complete Indian delivery address, 10-digit mobile number and 6-digit PIN code." });
+    if (input.Latitude.HasValue != input.Longitude.HasValue || (input.Latitude.HasValue && (!double.IsFinite(input.Latitude.Value) || input.Latitude < -90 || input.Latitude > 90 || !double.IsFinite(input.Longitude!.Value) || input.Longitude < -180 || input.Longitude > 180))) return Results.BadRequest(new { message = "Choose a valid delivery location." });
     var row = new AddressRow { UserId = user.FindFirstValue(ClaimTypes.NameIdentifier)!, Json = JsonSerializer.Serialize(input, json) };
     db.Addresses.Add(row); await db.SaveChangesAsync(); return Results.Ok(new { row.Id, details = input });
 }).RequireAuthorization();
@@ -171,8 +178,8 @@ app.Run();
 
 object OrderView(OrderRow o) => new { o.Id, o.CustomerEmail, o.CreatedAt, o.Status, o.Total, paymentMethod = "Cash on delivery", address = JsonSerializer.Deserialize<AddressInput>(o.AddressJson, json), items = JsonSerializer.Deserialize<List<OrderLine>>(o.ItemsJson, json) };
 static string? ValidateProduct(StoreProduct p) {
-    if (!Regex.IsMatch(p.Id ?? "", @"^[a-z0-9][a-z0-9-]{0,79}$") || string.IsNullOrWhiteSpace(p.Name) || p.Name.Length > 150 || p.CategoryId is < 1 or > 12 || p.Price <= 0 || p.Price > 100000 || p.StockQuantity < 0 || p.StockQuantity > 1000000 || string.IsNullOrWhiteSpace(p.Weight) || string.IsNullOrWhiteSpace(p.Description) || p.Benefits is null || p.Storage is null || p.Delivery is null || p.Nutrition is null || p.Nutrition.Items is null || p.Rating < 0 || p.Rating > 5 || p.Reviews < 0) return "Complete all product fields with valid prices and stock.";
-    bool ImageValid(string image) => !string.IsNullOrWhiteSpace(image) && ((image.StartsWith("/") && !image.StartsWith("//")) || (Uri.TryCreate(image, UriKind.Absolute, out var uri) && uri.Scheme == "https"));
+    if (!Regex.IsMatch(p.Id ?? "", @"^[a-z0-9][a-z0-9-]{0,79}$") || string.IsNullOrWhiteSpace(p.Name) || p.Name.Length > 150 || p.CategoryId < 1 || p.Price <= 0 || p.Price > 100000 || p.StockQuantity < 0 || p.StockQuantity > 1000000 || string.IsNullOrWhiteSpace(p.Weight) || string.IsNullOrWhiteSpace(p.Description) || p.Benefits is null || p.Storage is null || p.Delivery is null || p.Nutrition is null || p.Nutrition.Items is null || p.Rating < 0 || p.Rating > 5 || p.Reviews < 0) return "Complete all product fields with valid prices and stock.";
+    bool ImageValid(string image) => CatalogEndpoints.ImageValid(image);
     if (!ImageValid(p.Image) || (p.Images?.Any(i => !ImageValid(i)) ?? false)) return "Use a relative image path or HTTPS image URL.";
     if (p.Variants is { Count: > 0 } && (p.Variants.Any(v => string.IsNullOrWhiteSpace(v.Weight) || v.Price <= 0 || v.Price > 100000) || p.Variants.Select(v => v.Weight).Distinct().Count() != p.Variants.Count || !p.Variants.Any(v => v.Weight == p.Weight && v.Price == p.Price))) return "Pack sizes must be unique and include the default weight and price.";
     return null;

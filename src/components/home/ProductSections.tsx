@@ -1,68 +1,41 @@
 import { useCatalog } from "@/lib/catalog";
-import { CATEGORIES, CATEGORY_IDS } from "@/data/products";
-import CategorySection from "./CategorySection";
-import { PRODUCTS_PER_ROW } from "@/constants/product";
-
+import ProductCard from "@/components/ProductCard";
 export default function ProductSections() {
-  const { products: PRODUCTS, isPending: catalogLoading, error: catalogError } = useCatalog();
-  const categoryIdsToShow = Object.values(CATEGORY_IDS);
-
-  if (catalogLoading) return <p className="p-10 text-center">Loading products…</p>;
-  if (catalogError) return <p role="alert" className="p-10 text-center">Products are unavailable. Please try again later.</p>;
-  if (!PRODUCTS.length) return <p className="p-10 text-center">Our catalog is being prepared. Please check back soon.</p>;
+  const { products, isPending, error } = useCatalog();
+  const featured = products.filter((p) => p.isBestSeller);
+  const bestsellers = (featured.length ? featured : products).slice(0, 8);
   return (
-    <section
-      id="shop"
-      className="max-w-7xl mx-auto px-6 py-10 scroll-mt-28"
-    >
-      <div className="text-center mb-14">
-        <p className="text-primary font-semibold uppercase tracking-widest text-xs">
-          Our Bestsellers
+    <section id="shop" className="mx-auto max-w-7xl scroll-mt-24 px-4 py-10 sm:px-6 sm:py-14">
+      <div className="mb-8 text-center">
+        <p className="text-xs font-bold uppercase tracking-[.22em] text-primary">
+          Customer favourites
         </p>
-
-        <h2 className="font-display text-4xl md:text-5xl font-bold text-secondary mt-2">
-          Fresh from the Sadhya
+        <h2 className="mt-3 font-display text-3xl font-bold text-secondary sm:text-5xl">
+          Best Selling
         </h2>
-
-        <p className="text-muted-foreground mt-3 max-w-xl mx-auto">
-          Each pack is hand-checked, vacuum-sealed and dispatched within 24
-          hours.
+        <p className="mt-3 text-sm text-muted-foreground">
+          Our handpicked favourites for your everyday pantry.
         </p>
       </div>
-
-      <div className="space-y-16">
-        {categoryIdsToShow.map((categoryId) => 
-        {
-
-            
-    const category = CATEGORIES.find(
-        c => c.id === categoryId
-    );
-
-    if (!category) return null;
-
-    const categoryProducts = PRODUCTS.filter(
-        p => p.categoryId === categoryId
-    );
-
-    const visibleProducts =
-    categoryProducts.slice(0, PRODUCTS_PER_ROW);
-
-    if (categoryProducts.length === 0)
-        return null;
-
-    return (
-       <CategorySection
-    key={category.id}
-    category={category}
-    products={visibleProducts}
-/>
-    );
-
-})}
-
-      </div>
-
+      {isPending ? (
+        <p role="status" className="text-center">
+          Loading products…
+        </p>
+      ) : error ? (
+        <p role="alert" className="text-center">
+          Products are unavailable. Please try again later.
+        </p>
+      ) : !bestsellers.length ? (
+        <p className="rounded-2xl border border-dashed p-8 text-center text-muted-foreground">
+          Explore our collections above. Our best-selling selection is coming soon.
+        </p>
+      ) : (
+        <div className="grid grid-cols-2 gap-3 sm:gap-6 lg:grid-cols-4">
+          {bestsellers.map((p) => (
+            <ProductCard key={p.id} product={p} />
+          ))}
+        </div>
+      )}
     </section>
   );
 }

@@ -13,7 +13,8 @@ export function resetCsrf() {
 export async function api<T>(path: string, options: RequestInit = {}): Promise<T> {
   const method = options.method ?? "GET";
   const headers = new Headers(options.headers);
-  if (options.body) headers.set("Content-Type", "application/json");
+  if (options.body && !(options.body instanceof FormData))
+    headers.set("Content-Type", "application/json");
   if (!["GET", "HEAD"].includes(method)) {
     if (!csrfToken) {
       const response = await fetch("/api/auth/csrf", { credentials: "same-origin" });

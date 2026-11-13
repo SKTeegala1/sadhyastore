@@ -686,16 +686,7 @@ const products = [
       "No Onion or Garlic",
     ],
     nutrition: {
-      servingSize: "100g",
-      items: [
-        { name: "Energy", value: 510, unit: "kcal" },
-        { name: "Protein", value: 6, unit: "g" },
-        { name: "Carbohydrates", value: 55, unit: "g" },
-        { name: "Fat", value: 30, unit: "g" },
-        { name: "Fiber", value: 4, unit: "g" },
-        { name: "Sodium", value: 320, unit: "mg" },
-        { name: "Iron", value: 1.8, unit: "mg" },
-      ],
+      
     },
   },
 ];

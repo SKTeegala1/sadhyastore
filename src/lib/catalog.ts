@@ -1,7 +1,12 @@
 import { useQuery } from "@tanstack/react-query";
 import { api } from "./api";
 import type { Product } from "./cart";
-export type StoreProduct = Product & { stockQuantity: number; isActive: boolean };
+export type StoreProduct = Product & {
+  stockQuantity: number;
+  isActive: boolean;
+  isBestSeller?: boolean;
+  isOffer?: boolean;
+};
 export function useCatalog(admin = false) {
   const query = useQuery({
     queryKey: [admin ? "admin-products" : "products"],

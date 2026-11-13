@@ -1,10 +1,13 @@
+import CategoryManager from "@/components/account/CategoryManager";
+import ImageUpload from "@/components/account/ImageUpload";
+import { useCategories } from "@/lib/categories";
 import { prepareCatalogImport } from "@/lib/catalogSeed";
 import { createFileRoute } from "@tanstack/react-router";
 import { useState, type FormEvent } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { api, message } from "@/lib/api";
 import { useCatalog, type StoreProduct } from "@/lib/catalog";
-import { PRODUCTS, CATEGORIES } from "@/data/products";
+import { PRODUCTS } from "@/data/products";
 import { money, type Order } from "@/lib/orders";
 import RequireAccount from "@/components/account/RequireAccount";
 import OrderList from "@/components/account/OrderList";
@@ -25,7 +28,7 @@ export const Route = createFileRoute("/admin")({
 const blank = (): StoreProduct => ({
   id: "",
   name: "",
-  categoryId: 1,
+  categoryId: 103,
   image: "",
   images: [],
   tagline: "",
@@ -45,11 +48,12 @@ const blank = (): StoreProduct => ({
 function Admin() {
   const cache = useQueryClient();
   const catalog = useCatalog(true);
+  const { categories: CATEGORIES } = useCategories();
   const orders = useQuery({
     queryKey: ["admin-orders"],
     queryFn: () => api<Order[]>("/admin/orders"),
   });
-  const [tab, setTab] = useState<"products" | "orders">("products");
+  const [tab, setTab] = useState<"products" | "categories" | "orders">("products");
   const [query, setQuery] = useState("");
   const [draft, setDraft] = useState<StoreProduct | null>(null);
   const [isNew, setIsNew] = useState(false);
@@ -95,13 +99,13 @@ function Admin() {
         ))}
       </div>
       <div className="mb-5 flex gap-5 border-b pb-3">
-        {(["products", "orders"] as const).map((t) => (
+        {(["products", "categories", "orders"] as const).map((t) => (
           <button
             key={t}
             className={tab === t ? "font-bold text-primary" : "text-muted-foreground"}
             onClick={() => setTab(t)}
           >
-            {t === "products" ? "Product catalog" : "Orders"}
+            {t === "products" ? "Products" : t === "categories" ? "Categories" : "Orders"}
           </button>
         ))}
       </div>
@@ -125,7 +129,7 @@ function Admin() {
               disabled={busy}
               className={buttonClass}
               onClick={() => {
-                setDraft(blank());
+                setDraft({ ...blank(), categoryId: CATEGORIES[0]?.id ?? 103 });
                 setIsNew(true);
               }}
             >
@@ -153,51 +157,96 @@ function Admin() {
           {catalog.isPending ? (
             <p>Loading catalog…</p>
           ) : (
-            <div className="overflow-x-auto rounded-2xl border">
-              <table className="w-full text-left text-sm">
-                <thead className="bg-muted">
-                  <tr>
-                    {["Product", "Category", "Price", "Stock", "Status", "Action"].map((h) => (
-                      <th key={h} className="p-4">
-                        {h}
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {filtered.map((p) => (
-                    <tr key={p.id} className="border-t">
-                      <td className="p-4">
-                        <div className="flex items-center gap-3">
-                          <img src={p.image} alt="" className="h-12 w-12 rounded-lg object-cover" />
-                          <div className="min-w-40 font-semibold">
-                            {p.name}
-                            <small className="block font-normal text-muted-foreground">
-                              {p.weight}
-                            </small>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="p-4">{CATEGORIES.find((c) => c.id === p.categoryId)?.name}</td>
-                      <td className="p-4">{money(p.price)}</td>
-                      <td className="p-4">{p.stockQuantity}</td>
-                      <td className="p-4">{p.isActive ? "Active" : "Hidden"}</td>
-                      <td className="p-4">
-                        <button
-                          disabled={busy}
-                          className="font-semibold text-primary"
-                          onClick={() => {
-                            setDraft(structuredClone(p));
-                            setIsNew(false);
-                          }}
-                        >
-                          Edit
-                        </button>
-                      </td>
+            <div className="min-w-0">
+              <div className="grid gap-3 md:hidden">
+                {filtered.map((p) => (
+                  <article
+                    key={p.id}
+                    className="flex min-w-0 items-center gap-3 rounded-2xl border bg-card p-3"
+                  >
+                    <img
+                      src={p.image}
+                      alt=""
+                      className="h-16 w-16 shrink-0 rounded-xl object-cover"
+                    />
+                    <div className="min-w-0 flex-1">
+                      <h3 className="break-words text-sm font-semibold">{p.name}</h3>
+                      <p className="text-xs text-muted-foreground">
+                        {CATEGORIES.find((c) => c.id === p.categoryId)?.name} · {p.weight}
+                      </p>
+                      <p className="mt-1 text-sm">
+                        {money(p.price)} · Stock {p.stockQuantity}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {p.isActive ? "Active" : "Hidden"}
+                        {p.isBestSeller ? " · Best seller" : ""}
+                      </p>
+                    </div>
+                    <button
+                      disabled={busy}
+                      className="min-h-11 shrink-0 px-2 text-sm font-semibold text-primary"
+                      onClick={() => {
+                        setDraft(structuredClone(p));
+                        setIsNew(false);
+                      }}
+                    >
+                      Edit
+                    </button>
+                  </article>
+                ))}
+              </div>
+              <div className="hidden overflow-x-auto rounded-2xl border md:block">
+                <table className="w-full text-left text-sm">
+                  <thead className="bg-muted">
+                    <tr>
+                      {["Product", "Category", "Price", "Stock", "Status", "Action"].map((h) => (
+                        <th key={h} className="p-4">
+                          {h}
+                        </th>
+                      ))}
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody>
+                    {filtered.map((p) => (
+                      <tr key={p.id} className="border-t">
+                        <td className="p-4">
+                          <div className="flex items-center gap-3">
+                            <img
+                              src={p.image}
+                              alt=""
+                              className="h-12 w-12 rounded-lg object-cover"
+                            />
+                            <div className="min-w-40 font-semibold">
+                              {p.name}
+                              <small className="block font-normal text-muted-foreground">
+                                {p.weight}
+                              </small>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="p-4">
+                          {CATEGORIES.find((c) => c.id === p.categoryId)?.name}
+                        </td>
+                        <td className="p-4">{money(p.price)}</td>
+                        <td className="p-4">{p.stockQuantity}</td>
+                        <td className="p-4">{p.isActive ? "Active" : "Hidden"}</td>
+                        <td className="p-4">
+                          <button
+                            disabled={busy}
+                            className="font-semibold text-primary"
+                            onClick={() => {
+                              setDraft(structuredClone(p));
+                              setIsNew(false);
+                            }}
+                          >
+                            Edit
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
               {!filtered.length && (
                 <p className="p-8 text-center text-muted-foreground">
                   No products found. Add a product or import the existing catalog.
@@ -224,6 +273,8 @@ function Admin() {
             />
           )}
         </>
+      ) : tab === "categories" ? (
+        <CategoryManager />
       ) : (
         <>
           <ErrorNotice text={orders.error ? message(orders.error) : ""} />
@@ -264,6 +315,8 @@ function ProductEditor({
   onSave: (product: StoreProduct) => Promise<void>;
   onCancel: () => void;
 }) {
+  const { categories: CATEGORIES } = useCategories();
+  const [uploading, setUploading] = useState(0);
   const [p, set] = useState(initial);
   const [error, setError] = useState("");
   const [variants, setVariants] = useState(
@@ -276,6 +329,7 @@ function ProductEditor({
     set((prev) => ({ ...prev, [key]: value }));
   async function submit(e: FormEvent) {
     e.preventDefault();
+    if (uploading) return;
     setError("");
     const packs = variants
       .split("\n")
@@ -302,7 +356,15 @@ function ProductEditor({
       setError("Pack sizes must include the default weight and price.");
       return;
     }
-    await onSave({ ...p, variants: packs, nutrition: { ...p.nutrition, items } });
+    await onSave({
+      ...p,
+      images: p.images?.filter((v) => v.trim()),
+      benefits: p.benefits.filter((v) => v.trim()),
+      storage: p.storage.filter((v) => v.trim()),
+      delivery: p.delivery.filter((v) => v.trim()),
+      variants: packs,
+      nutrition: { ...p.nutrition, items },
+    });
   }
   function lines(label: string, key: "benefits" | "storage" | "delivery" | "images") {
     return (
@@ -318,10 +380,10 @@ function ProductEditor({
     );
   }
   return (
-    <section className="mt-8 rounded-2xl border bg-card p-6">
+    <section className="mt-8 min-w-0 rounded-2xl border bg-card p-4 sm:p-6">
       <div className="mb-5 flex justify-between">
         <h2 className="text-xl font-bold">{isNew ? "Add product" : `Edit ${initial.name}`}</h2>
-        <button disabled={busy} onClick={onCancel}>
+        <button disabled={busy || uploading > 0} onClick={onCancel}>
           Close
         </button>
       </div>
@@ -362,6 +424,45 @@ function ProductEditor({
           required
           onChange={(e) => update("image", e.target.value)}
         />
+        <ImageUpload
+          onBusyChange={(value) => setUploading((n) => n + (value ? 1 : -1))}
+          label="Upload product image"
+          value={p.image}
+          disabled={busy || uploading > 0}
+          onChange={(url) => update("image", url)}
+        />
+        <div className="space-y-3">
+          <ImageUpload
+            onBusyChange={(value) => setUploading((n) => n + (value ? 1 : -1))}
+            label="Add gallery image"
+            disabled={busy || uploading > 0}
+            onChange={(url) => update("images", [...(p.images ?? []).filter(Boolean), url])}
+          />
+          <div className="flex flex-wrap gap-2">
+            {(p.images ?? []).filter(Boolean).map((image, index) => (
+              <div key={index} className="relative">
+                <img
+                  src={image}
+                  alt={`Gallery ${index + 1}`}
+                  className="h-16 w-16 rounded-lg object-cover"
+                />
+                <button
+                  type="button"
+                  aria-label={`Remove gallery image ${index + 1}`}
+                  className="absolute -right-1 -top-1 h-7 w-7 rounded-full bg-background shadow"
+                  onClick={() =>
+                    update(
+                      "images",
+                      (p.images ?? []).filter((_, i) => i !== index),
+                    )
+                  }
+                >
+                  ×
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
         <Field
           label="Tagline"
           value={p.tagline}
@@ -406,6 +507,22 @@ function ProductEditor({
           />
           Visible in storefront
         </label>
+        <label className="flex min-h-11 items-center gap-3">
+          <input
+            type="checkbox"
+            checked={p.isBestSeller ?? false}
+            onChange={(e) => update("isBestSeller", e.target.checked)}
+          />
+          Feature in Best Selling
+        </label>
+        <label className="flex min-h-11 items-center gap-3">
+          <input
+            type="checkbox"
+            checked={p.isOffer ?? false}
+            onChange={(e) => update("isOffer", e.target.checked)}
+          />
+          Also show in Offer Zone
+        </label>
         <label className="grid gap-1 text-sm md:col-span-2">
           Description
           <textarea
@@ -446,10 +563,10 @@ function ProductEditor({
           />
         </label>
         <div className="flex gap-4 md:col-span-2">
-          <button disabled={busy} className={buttonClass}>
+          <button disabled={busy || uploading > 0} className={buttonClass}>
             {busy ? "Saving…" : "Save product"}
           </button>
-          <button type="button" disabled={busy} onClick={onCancel}>
+          <button type="button" disabled={busy || uploading > 0} onClick={onCancel}>
             Cancel
           </button>
         </div>

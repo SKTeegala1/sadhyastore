@@ -1,6 +1,6 @@
 import type { InputHTMLAttributes, ReactNode } from "react";
 export const fieldClass =
-  "w-full rounded-xl border bg-background px-3 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary";
+  "min-w-0 w-full rounded-xl border bg-background min-h-11 px-3 py-2.5 text-base sm:text-sm outline-none focus:ring-2 focus:ring-primary";
 export const buttonClass =
   "rounded-xl bg-primary px-5 py-3 font-semibold text-primary-foreground disabled:opacity-50";
 export function Field({
@@ -26,7 +26,7 @@ export function Panel({
   return (
     <section className="mx-auto max-w-6xl px-4 py-12">
       <p className="mb-2 text-xs font-bold uppercase tracking-widest text-primary">Sadhya Store</p>
-      <h1 className="font-display text-3xl font-bold md:text-4xl">{title}</h1>
+      <h1 className="break-words font-display text-3xl font-bold md:text-4xl">{title}</h1>
       {subtitle && <p className="mt-3 text-muted-foreground">{subtitle}</p>}
       <div className="mt-8">{children}</div>
     </section>

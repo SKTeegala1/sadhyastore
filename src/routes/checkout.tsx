@@ -72,7 +72,7 @@ function Checkout() {
     );
   return (
     <Panel title="Checkout" subtitle="1. Delivery address · 2. Review your order · 3. Place order">
-      <div className="grid gap-8 lg:grid-cols-[1fr_360px]">
+      <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_360px]">
         <div>
           <h2 className="mb-4 text-xl font-semibold">Delivery address</h2>
           <AddressBook selected={address} onSelect={setAddress} />

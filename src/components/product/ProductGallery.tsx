@@ -1,78 +1,53 @@
 import { useState } from "react";
 import type { Product } from "@/lib/cart";
-
-type Props = {
-  product: Product;
-};
-
-export default function ProductGallery({ product }: Props) {
-  const images =
-    product.images && product.images.length > 0
-      ? product.images
-      : [product.image];
-
-  const [selectedImage, setSelectedImage] = useState(images[0]);
-  const [isZoomed, setIsZoomed] = useState(false);
-  const [position, setPosition] = useState({
-  x: 50,
-  y: 50,
-});
-
+export default function ProductGallery({ product }: { product: Product }) {
+  const images = product.images?.length ? product.images : [product.image];
+  const [selected, setSelected] = useState(images[0]);
+  const [zoomed, setZoomed] = useState(false);
+  const [position, setPosition] = useState({ x: 50, y: 50 });
+  const current = images.includes(selected) ? selected : images[0];
   return (
-    <div className="flex gap-5">
-      {/* Thumbnails */}
-      <div className="flex flex-col gap-3">
+    <div className="flex min-w-0 flex-col gap-3 sm:flex-row sm:gap-5">
+      <div className="order-2 flex min-w-0 gap-2 overflow-x-auto pb-2 sm:order-1 sm:max-h-[34rem] sm:shrink-0 sm:flex-col sm:overflow-y-auto sm:overflow-x-hidden sm:pb-0">
         {images.map((image, index) => (
           <button
             key={index}
-            onClick={() => setSelectedImage(image)}
-            className={`group relative w-20 h-20 rounded-2xl overflow-hidden border-2 bg-white transition-all duration-300 ${
-  selectedImage === image
-    ? "border-primary shadow-lg scale-105"
-    : "border-gray-200 hover:border-primary/40 hover:scale-105"
-}`}
+            aria-label={`View product image ${index + 1}`}
+            aria-pressed={image === current}
+            onClick={() => setSelected(image)}
+            className={`h-16 w-16 shrink-0 overflow-hidden rounded-xl border-2 bg-white sm:h-20 sm:w-20 ${image === current ? "border-primary" : "border-border"}`}
           >
-           <img
-  src={image}
-  alt={`${product.name}-${index + 1}`}
-  className="w-full h-full object-contain p-2"
-/>
+            <img src={image} alt="" className="h-full w-full object-contain p-1" />
           </button>
         ))}
       </div>
-
-      {/* Main Image */}
-      <div className="flex-1">
-  <div
-  className="relative aspect-square rounded-3xl overflow-hidden border bg-white shadow-sm cursor-zoom-in"
-  onMouseEnter={() => setIsZoomed(true)}
-  onMouseLeave={() => {
-    setIsZoomed(false);
-    setPosition({ x: 50, y: 50 });
-  }}
-  onMouseMove={(e) => {
-    const rect = e.currentTarget.getBoundingClientRect();
-
-    const x = ((e.clientX - rect.left) / rect.width) * 100;
-    const y = ((e.clientY - rect.top) / rect.height) * 100;
-
-    setPosition({ x, y });
-  }}
->
-    <img
-      key={selectedImage}
-      src={selectedImage}
-      alt={product.name}
-      className={`absolute inset-0 h-full w-full object-contain p-8 transition-transform duration-150 ${
-  isZoomed ? "scale-200" : "scale-100"
-}`}
-style={{
-  transformOrigin: `${position.x}% ${position.y}%`,
-}}
-    />
-  </div>
-</div>
-      
+      <div className="order-1 min-w-0 flex-1 sm:order-2">
+        <div
+          className="relative aspect-square overflow-hidden rounded-3xl border bg-white shadow-sm"
+          onMouseEnter={() => {
+            if (window.matchMedia("(hover: hover) and (pointer: fine)").matches) setZoomed(true);
+          }}
+          onMouseLeave={() => setZoomed(false)}
+          onMouseMove={(e) => {
+            if (!zoomed) return;
+            const rect = e.currentTarget.getBoundingClientRect();
+            setPosition({
+              x: ((e.clientX - rect.left) / rect.width) * 100,
+              y: ((e.clientY - rect.top) / rect.height) * 100,
+            });
+          }}
+        >
+          <img
+            src={current}
+            alt={product.name}
+            className={
+              "absolute inset-0 h-full w-full object-contain p-4 transition-transform sm:p-8 " +
+              (zoomed ? "scale-200" : "scale-100")
+            }
+            style={{ transformOrigin: `${position.x}% ${position.y}%` }}
+          />
+        </div>
+      </div>
     </div>
   );
 }

@@ -1,3 +1,4 @@
+import { mapsUrl } from "@/lib/googleMaps";
 import type { Order } from "@/lib/orders";
 import { money } from "@/lib/orders";
 export default function OrderList({
@@ -48,6 +49,16 @@ export default function OrderList({
             {o.address.fullName} · {o.address.line1} {o.address.line2}, {o.address.city},{" "}
             {o.address.state} {o.address.postalCode} · {o.address.phone}
           </p>
+          {o.address.latitude != null && o.address.longitude != null && (
+            <a
+              href={mapsUrl({ latitude: o.address.latitude, longitude: o.address.longitude })}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-2 inline-flex min-h-11 items-center text-sm font-semibold text-primary"
+            >
+              Open delivery location on Google Maps ↗
+            </a>
+          )}
           {onStatus && (
             <div className="mt-4 flex flex-wrap items-center justify-between gap-2 text-sm">
               <span>{o.customerEmail}</span>

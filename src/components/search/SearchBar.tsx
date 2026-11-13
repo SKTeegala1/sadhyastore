@@ -1,239 +1,157 @@
+import { useCategories } from "@/lib/categories";
 import { useCatalog } from "@/lib/catalog";
 import { Search } from "lucide-react";
 import { useState } from "react";
-import { CATEGORIES } from "@/data/products";
+
 import { useNavigate } from "@tanstack/react-router";
 import { Product } from "@/lib/cart";
-import { useEffect, useRef ,useMemo} from "react";
-
+import { useEffect, useRef, useMemo } from "react";
 
 type SearchBarProps = {
-    onNavigate?: () => void;
+  onNavigate?: () => void;
 };
 
-export default function SearchBar({
-    onNavigate,
-}: SearchBarProps) {
+export default function SearchBar({ onNavigate }: SearchBarProps) {
   const { products: PRODUCTS, isPending: catalogLoading, error: catalogError } = useCatalog();
-    const navigate = useNavigate();
-    const [query, setQuery] = useState("");
-    const [selectedIndex, setSelectedIndex] = useState(-1);
-    const itemRefs =
-    useRef<(HTMLDivElement | null)[]>([]);
+  const { categories: CATEGORIES } = useCategories();
+  const navigate = useNavigate();
+  const [query, setQuery] = useState("");
+  const [selectedIndex, setSelectedIndex] = useState(-1);
+  const itemRefs = useRef<(HTMLDivElement | null)[]>([]);
 
+  const searchRef = useRef<HTMLDivElement>(null);
 
-    const searchRef = useRef<HTMLDivElement>(null);
-
-   const filteredProducts = useMemo(() => {
+  const filteredProducts = useMemo(() => {
     if (!query.trim()) return [];
 
     const search = query.toLowerCase();
 
     return PRODUCTS.filter((product) => {
+      const category = CATEGORIES.find((c) => c.id === product.categoryId);
 
-        const category = CATEGORIES.find(
-            c => c.id === product.categoryId
-        );
-
-        return (
-            product.name.toLowerCase().includes(search) ||
-            product.tagline.toLowerCase().includes(search) ||
-            category?.name.toLowerCase().includes(search)
-        );
-
+      return (
+        product.name.toLowerCase().includes(search) ||
+        product.tagline.toLowerCase().includes(search) ||
+        category?.name.toLowerCase().includes(search)
+      );
     }).slice(0, 6);
+  }, [query, PRODUCTS, CATEGORIES]);
 
-}, [query, PRODUCTS]);
-
-useEffect(() => {
-
-    if (
-        selectedIndex >= 0 &&
-        itemRefs.current[selectedIndex]
-    ) {
-
-        itemRefs.current[selectedIndex]
-            ?.scrollIntoView({
-
-                block: "nearest",
-
-            });
-
+  useEffect(() => {
+    if (selectedIndex >= 0 && itemRefs.current[selectedIndex]) {
+      itemRefs.current[selectedIndex]?.scrollIntoView({
+        block: "nearest",
+      });
     }
+  }, [selectedIndex]);
 
-}, [selectedIndex]);
-
-useEffect(() => {
-
+  useEffect(() => {
     setSelectedIndex(-1);
+  }, [query]);
 
-}, [query]);
-
-
-const handleProductClick = (
-    product: Product
-) => {
-
+  const handleProductClick = (product: Product) => {
     onNavigate?.();
     navigate({
+      to: "/product/$id",
 
-        to: "/product/$id",
-
-        params: {
-
-            id: product.id,
-
-        },
-
+      params: {
+        id: product.id,
+      },
     });
 
     setQuery("");
 
     setSelectedIndex(-1);
+  };
 
-};
-
-
-const handleKeyDown = (
-    e: React.KeyboardEvent<HTMLInputElement>
-) => {
-
-    if (!filteredProducts.length)
-        return;
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (!filteredProducts.length) return;
 
     switch (e.key) {
+      case "ArrowDown":
+        e.preventDefault();
 
-        case "ArrowDown":
+        setSelectedIndex((prev) => (prev < filteredProducts.length - 1 ? prev + 1 : 0));
 
-            e.preventDefault();
+        break;
 
-            setSelectedIndex(prev =>
-                prev < filteredProducts.length - 1
-                    ? prev + 1
-                    : 0
-            );
+      case "ArrowUp":
+        e.preventDefault();
 
-            break;
+        setSelectedIndex((prev) => (prev > 0 ? prev - 1 : filteredProducts.length - 1));
 
-        case "ArrowUp":
+        break;
 
-            e.preventDefault();
+      case "Enter":
+        if (selectedIndex >= 0) {
+          e.preventDefault();
 
-            setSelectedIndex(prev =>
-                prev > 0
-                    ? prev - 1
-                    : filteredProducts.length - 1
-            );
-
-            break;
-
-        case "Enter":
-
-            if (selectedIndex >= 0) {
-
-                e.preventDefault();
-
-                handleProductClick(
-                    filteredProducts[selectedIndex]
-                );
-            }
-
-            break;
-
-        case "Escape":
-
-            setQuery("");
-
-            break;
-
-    }
-
-};
-
-
-
-useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-        if (
-            searchRef.current &&
-            !searchRef.current.contains(event.target as Node)
-        ) {
-            setQuery("");
+          handleProductClick(filteredProducts[selectedIndex]);
         }
+
+        break;
+
+      case "Escape":
+        setQuery("");
+
+        break;
+    }
+  };
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
+        setQuery("");
+      }
     };
 
-    document.addEventListener(
-        "mousedown",
-        handleClickOutside
-    );
+    document.addEventListener("mousedown", handleClickOutside);
 
     return () => {
-        document.removeEventListener(
-            "mousedown",
-            handleClickOutside
-        );
+      document.removeEventListener("mousedown", handleClickOutside);
     };
-}, []);
+  }, []);
 
   return (
-    <div
-    ref={searchRef}
-    className="relative w-72"
->
+    <div ref={searchRef} className="relative w-72 max-w-full">
       <Search
         className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
         size={18}
       />
 
       <input
-    type="text"
-    placeholder="Search products..."
-    value={query}
-    onChange={(e) => setQuery(e.target.value)}
-    onKeyDown={handleKeyDown}
-    className="w-full rounded-full border bg-background py-2 pl-10 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-/>
+        type="text"
+        placeholder="Search products..."
+        value={query}
+        onChange={(e) => setQuery(e.target.value)}
+        onKeyDown={handleKeyDown}
+        className="w-full rounded-full border bg-background py-2 pl-10 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+      />
 
-{filteredProducts.length > 0 && (
-  <div className="absolute left-0 right-0 mt-2 rounded-2xl border bg-background shadow-xl overflow-hidden z-50">
+      {filteredProducts.length > 0 && (
+        <div className="absolute left-0 right-0 mt-2 rounded-2xl border bg-background shadow-xl overflow-hidden z-50">
+          {filteredProducts.map((product, index) => (
+            <div
+              key={product.id}
+              onClick={() => handleProductClick(product)}
+              className={`flex items-center gap-3 p-3 cursor-pointer transition
+${selectedIndex === index ? "bg-primary/10" : "hover:bg-muted"}`}
+            >
+              <img
+                src={product.image}
+                alt={product.name}
+                className="w-12 h-12 rounded-lg object-cover"
+              />
 
-    {filteredProducts.map((product, index) => (
+              <div className="flex-1">
+                <div className="font-semibold">{product.name}</div>
 
-      <div
-        key={product.id}
-        onClick={() => handleProductClick(product)}
-        className={`flex items-center gap-3 p-3 cursor-pointer transition
-${
-selectedIndex === index
-? "bg-primary/10"
-: "hover:bg-muted"
-}`}
-      >
-        <img
-          src={product.image}
-          alt={product.name}
-          className="w-12 h-12 rounded-lg object-cover"
-        />
-
-        <div className="flex-1">
-
-          <div className="font-semibold">
-            {product.name}
-          </div>
-
-          <div className="text-sm text-muted-foreground">
-            ₹{product.price}
-          </div>
-
+                <div className="text-sm text-muted-foreground">₹{product.price}</div>
+              </div>
+            </div>
+          ))}
         </div>
-
-      </div>
-
-    ))}
-
-  </div>
-)}
-
+      )}
     </div>
   );
 }

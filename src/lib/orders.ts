@@ -6,6 +6,8 @@ export type AddressDetails = {
   city: string;
   state: string;
   postalCode: string;
+  latitude?: number | null;
+  longitude?: number | null;
 };
 export type Address = { id: string; details: AddressDetails };
 export type Order = {

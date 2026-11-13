@@ -13,6 +13,9 @@ public sealed class StoreDb(DbContextOptions<StoreDb> options) : IdentityDbConte
         builder.Entity<OrderRow>().Property(o => o.Total).HasPrecision(18, 2);
         builder.Entity<OrderRow>().HasIndex(o => new { o.UserId, o.RequestKey }).IsUnique();
     }
+    public DbSet<StoreCategory> Categories => Set<StoreCategory>();
+    public DbSet<StoreSetting> StoreSettings => Set<StoreSetting>();
+    public DbSet<MediaRow> Media => Set<MediaRow>();
     public DbSet<ProductRow> Products => Set<ProductRow>();
     public DbSet<AddressRow> Addresses => Set<AddressRow>();
     public DbSet<OrderRow> Orders => Set<OrderRow>();
@@ -50,9 +53,21 @@ public record Nutrition(string ServingSize, List<NutritionItem> Items);
 public record StoreProduct(string Id, string Name, int CategoryId, string Image, List<string>? Images,
     string Tagline, decimal Price, string Weight, List<Variant>? Variants, string Description,
     List<string> Benefits, Nutrition Nutrition, List<string> Storage, List<string> Delivery,
-    decimal Rating, int Reviews, string? Badge, int StockQuantity = 100, bool IsActive = true);
-public record AddressInput(string FullName, string Phone, string Line1, string Line2, string City, string State, string PostalCode);
+    decimal Rating, int Reviews, string? Badge, int StockQuantity = 100, bool IsActive = true, bool IsBestSeller = false, bool IsOffer = false);
+public record AddressInput(string FullName, string Phone, string Line1, string Line2, string City, string State, string PostalCode, double? Latitude = null, double? Longitude = null);
 public record OrderItemInput(string ProductId, string Weight, int Quantity);
 public record OrderInput(Guid AddressId, List<OrderItemInput> Items, string RequestKey);
 public record OrderLine(string ProductId, string Name, string Image, string Weight, int Quantity, decimal UnitPrice);
 public record OrderStatusInput(string Status);
+
+public sealed class StoreCategory
+{
+    [System.ComponentModel.DataAnnotations.Schema.DatabaseGenerated(System.ComponentModel.DataAnnotations.Schema.DatabaseGeneratedOption.None)]
+    public int Id { get; set; }
+    [MaxLength(80)] public string Name { get; set; } = "";
+    public string Image { get; set; } = "";
+    public int SortOrder { get; set; }
+}
+public sealed class StoreSetting { [Key, MaxLength(80)] public string Key { get; set; } = ""; public string Value { get; set; } = ""; }
+public sealed class MediaRow { public Guid Id { get; set; } = Guid.NewGuid(); public string ContentType { get; set; } = ""; public byte[] Content { get; set; } = []; }
+public record CategoryInput(string Name, string Image, int SortOrder);

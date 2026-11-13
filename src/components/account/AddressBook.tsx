@@ -1,3 +1,5 @@
+import DeliveryLocation from "./DeliveryLocation";
+import { mapsUrl, type LocationPin } from "@/lib/googleMaps";
 import { useState, type FormEvent } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { api, message } from "@/lib/api";
@@ -19,6 +21,7 @@ export default function AddressBook({
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
   const [adding, setAdding] = useState(false);
+  const [location, setLocation] = useState<LocationPin | null>(null);
   async function submit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const form = e.currentTarget;
@@ -27,12 +30,17 @@ export default function AddressBook({
     try {
       const address = await api<Address>("/addresses", {
         method: "POST",
-        body: JSON.stringify(Object.fromEntries(new FormData(form))),
+        body: JSON.stringify({
+          ...Object.fromEntries(new FormData(form)),
+          latitude: location?.latitude ?? null,
+          longitude: location?.longitude ?? null,
+        }),
       });
       await cache.invalidateQueries({ queryKey: ["addresses"] });
       onSelect?.(address.id);
       form.reset();
       setAdding(false);
+      setLocation(null);
     } catch (e) {
       setError(message(e));
     } finally {
@@ -71,6 +79,16 @@ export default function AddressBook({
               {a.details.city}, {a.details.state} – {a.details.postalCode}
             </p>
             <p className="mt-1 text-sm">{a.details.phone}</p>
+            {a.details.latitude != null && a.details.longitude != null && (
+              <a
+                href={mapsUrl({ latitude: a.details.latitude, longitude: a.details.longitude })}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex min-h-10 items-center text-xs font-semibold text-primary"
+              >
+                Delivery pin on Google Maps ↗
+              </a>
+            )}
             <button
               type="button"
               disabled={busy}
@@ -108,6 +126,7 @@ export default function AddressBook({
           className="grid gap-4 rounded-2xl border bg-card p-5 sm:grid-cols-2"
         >
           <h3 className="font-semibold sm:col-span-2">New delivery address</h3>
+          <DeliveryLocation value={location} onChange={setLocation} />
           <Field
             label="Full name"
             name="fullName"
@@ -164,7 +183,13 @@ export default function AddressBook({
             <button disabled={busy} className={buttonClass}>
               {busy ? "Saving…" : "Save address"}
             </button>
-            <button type="button" onClick={() => setAdding(false)}>
+            <button
+              type="button"
+              onClick={() => {
+                setAdding(false);
+                setLocation(null);
+              }}
+            >
               Cancel
             </button>
           </div>

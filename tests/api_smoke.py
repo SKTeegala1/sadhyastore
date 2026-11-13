@@ -2,6 +2,8 @@
 Run: python tests/api_smoke.py (requires .NET 10 SDK on PATH).
 """
 import http.cookiejar
+import base64
+import sqlite3
 import json
 import os
 from pathlib import Path
@@ -23,18 +25,18 @@ PASSWORD = secrets.token_urlsafe(22) + 'Aa1!'
 class Client:
     def __init__(self):
         self.http = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(http.cookiejar.CookieJar()))
-    def call(self, path, method='GET', data=None, csrf=True):
-        headers = {'Content-Type': 'application/json'}
+    def call(self, path, method='GET', data=None, csrf=True, content_type='application/json'):
+        headers = {'Content-Type': content_type}
         if method != 'GET' and csrf:
             _, token = self.call('/auth/csrf')
             headers['X-CSRF-TOKEN'] = token['token']
-        request = urllib.request.Request(BASE + '/api' + path, data=json.dumps(data).encode() if data is not None else None, headers=headers, method=method)
+        request = urllib.request.Request(BASE + '/api' + path, data=data if isinstance(data, bytes) else json.dumps(data).encode() if data is not None else None, headers=headers, method=method)
         try:
             response = self.http.open(request)
         except urllib.error.HTTPError as e:
             response = e
         body = response.read()
-        return response.status, json.loads(body) if body else None
+        return response.status, (json.loads(body) if 'application/json' in response.headers.get('Content-Type', '') else body) if body else None
     def expect(self, status, *args, **kwargs):
         actual, body = self.call(*args, **kwargs)
         assert actual == status, (args[0], status, actual, body)
@@ -66,6 +68,24 @@ with tempfile.TemporaryDirectory(prefix='sadhya-api-test-') as directory:
                 client.expect(200, '/auth/login', 'POST', {'email':email,'password':PASSWORD})
                 assert not client.expect(200, '/auth/me')['isAdmin']
                 client.expect(403, '/admin/products')
+            categories = guest.expect(200, '/categories')
+            assert [c['name'] for c in categories] == ['Offer Zone','Dry Fruits','Nuts','Spices','Healthy Snacks','Dates','Seeds','Berries','Rice & Millets','Herbal Powders','Oils']
+            customer.expect(403, '/admin/categories', 'POST', {'name':'Forbidden','image':'/test.jpg','sortOrder':12})
+            new_category = admin.expect(200, '/admin/categories', 'POST', {'name':'Test collection','image':'/test.jpg','sortOrder':12})
+            admin.expect(409, '/admin/categories', 'POST', {'name':'test collection','image':'/test.jpg','sortOrder':12})
+            admin.expect(200, '/admin/categories/' + str(new_category['id']), 'PUT', {'name':'Edited collection','image':'/updated.jpg','sortOrder':13})
+            admin.expect(204, '/admin/categories/' + str(new_category['id']), 'DELETE')
+            boundary = 'SadhyaSmokeBoundary'
+            def multipart(data):
+                return ('--' + boundary + '\r\nContent-Disposition: form-data; name="file"; filename="test.png"\r\nContent-Type: image/png\r\n\r\n').encode() + data + ('\r\n--' + boundary + '--\r\n').encode()
+            png = base64.b64decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jRZkAAAAASUVORK5CYII=')
+            upload = multipart(png)
+            upload_type = 'multipart/form-data; boundary=' + boundary
+            customer.expect(403, '/admin/media', 'POST', upload, content_type=upload_type)
+            admin.expect(400, '/admin/media', 'POST', multipart(b'<svg>not permitted</svg>'), content_type=upload_type)
+            media = admin.expect(200, '/admin/media', 'POST', upload, content_type=upload_type)
+            assert guest.expect(200, media['url'][4:]) == png
+            admin.expect(200, '/admin/categories/103', 'PUT', {'name':'Nuts','image':media['url'],'sortOrder':2})
             products = json.loads(Path(os.environ['CATALOG_FIXTURE']).read_text()) if os.environ.get('CATALOG_FIXTURE') else json.loads(subprocess.check_output(['node', str(ROOT / 'tests/export_catalog.cjs')]))
             if products:
                 admin.expect(200, '/admin/products/import', 'POST', products)
@@ -74,11 +94,15 @@ with tempfile.TemporaryDirectory(prefix='sadhya-api-test-') as directory:
                     entry['isActive'] = False
                     admin.expect(200, '/admin/products/' + entry['id'], 'PUT', entry)
                 print(f"PASS: imported and validated all {len(products)} existing catalog products")
-            product = dict(id='test-almond', name='Test Almond', categoryId=2, image='/test.jpg', images=[], tagline='Fresh', price=200, weight='250g', variants=[{'weight':'250g','price':200},{'weight':'500g','price':380}], description='Test product', benefits=[], nutrition={'servingSize':'100g','items':[]}, storage=[], delivery=[], rating=0, reviews=0, stockQuantity=5, isActive=True)
+            product = dict(id='test-almond', name='Test Almond', categoryId=103, image='/test.jpg', images=[], tagline='Fresh', price=200, weight='250g', variants=[{'weight':'250g','price':200},{'weight':'500g','price':380}], description='Test product', benefits=[], nutrition={'servingSize':'100g','items':[]}, storage=[], delivery=[], rating=0, reviews=0, stockQuantity=5, isActive=True, isBestSeller=True, isOffer=True)
             customer.expect(403, '/admin/products/test-almond', 'PUT', product)
             admin.expect(200, '/admin/products/test-almond', 'PUT', product)
+            admin.expect(400, '/admin/products/test-almond', 'PUT', dict(product, categoryId=99999))
             assert len(guest.expect(200, '/products')) == 1
-            address = customer.expect(200, '/addresses', 'POST', dict(fullName='Customer',phone='9000000000',line1='Test street',line2='',city='Hyderabad',state='Telangana',postalCode='502032'))
+            assert guest.expect(200, '/products')[0]['isBestSeller']
+            assert guest.expect(200, '/products')[0]['isOffer']
+            address = customer.expect(200, '/addresses', 'POST', dict(fullName='Customer',phone='9000000000',line1='Test street',line2='',city='Hyderabad',state='Telangana',postalCode='502032',latitude=17.519,longitude=78.284))
+            customer.expect(400, '/addresses', 'POST', dict(address['details'], latitude=999))
             other.expect(404, '/addresses/' + address['id'], 'DELETE')
             order = dict(addressId=address['id'], requestKey='10000000-0000-0000-0000-000000000001', items=[dict(productId='test-almond',weight='250g',quantity=2,price=1)])
             other.expect(400, '/orders', 'POST', order)
@@ -86,6 +110,7 @@ with tempfile.TemporaryDirectory(prefix='sadhya-api-test-') as directory:
             customer.expect(400, '/orders', 'POST', invalid)
             placed = customer.expect(200, '/orders', 'POST', order)
             assert placed['total'] == 400, placed
+            assert placed['address']['latitude'] == 17.519
             again = customer.expect(200, '/orders', 'POST', order)
             assert again['id'] == placed['id']
             assert guest.expect(200, '/products')[0]['stockQuantity'] == 3
@@ -100,8 +125,30 @@ with tempfile.TemporaryDirectory(prefix='sadhya-api-test-') as directory:
             product['isActive'] = False
             admin.expect(200, '/admin/products/test-almond', 'PUT', product)
             assert guest.expect(200, '/products') == []
+            admin.expect(409, '/admin/categories/103', 'DELETE')
+            admin.expect(204, '/admin/categories/103?reassignTo=102', 'DELETE')
+            assert next(p for p in admin.expect(200, '/admin/products') if p['id'] == 'test-almond')['categoryId'] == 102
             customer.expect(204, '/auth/logout', 'POST', {})
             customer.expect(401, '/auth/me')
+            # Simulate the previous release's database layout, then restart the new API.
+            process.terminate(); process.wait(timeout=15)
+            with sqlite3.connect(f'{directory}/test.db') as legacy:
+                for table in ['Categories', 'StoreSettings', 'Media']: legacy.execute(f'DROP TABLE {table}')
+                payload = json.loads(legacy.execute("SELECT Json FROM Products WHERE Id='test-almond'").fetchone()[0])
+                payload['categoryId'] = 2
+                legacy.execute("UPDATE Products SET Json=? WHERE Id='test-almond'", (json.dumps(payload),))
+                counts = [legacy.execute(f'SELECT COUNT(*) FROM {table}').fetchone()[0] for table in ['AspNetUsers','Addresses','Orders']]
+            process = subprocess.Popen([os.environ.get('DOTNET', 'dotnet'), 'run', '--no-build', '--project', str(ROOT / 'backend/Sadhya.Api')], env=env, stdout=log, stderr=log)
+            for attempt in range(100):
+                try:
+                    if guest.call('/health')[0] == 200: break
+                except OSError: pass
+                time.sleep(.1)
+            else: raise RuntimeError('Upgraded API failed to start')
+            with sqlite3.connect(f'{directory}/test.db') as upgraded:
+                assert counts == [upgraded.execute(f'SELECT COUNT(*) FROM {table}').fetchone()[0] for table in ['AspNetUsers','Addresses','Orders']]
+                assert json.loads(upgraded.execute("SELECT Json FROM Products WHERE Id='test-almond'").fetchone()[0])['categoryId'] == 103
+            print('PASS: ordered categories, category CRUD/reassignment, admin-only raster uploads, media retrieval, delivery coordinates and non-destructive legacy database upgrade')
             print('PASS: registration, cookie login/logout, CSRF, customer/admin authorization, address ownership, server pricing, variants, stock, idempotent orders, order privacy/status, hidden products')
         except Exception:
             log.seek(0)

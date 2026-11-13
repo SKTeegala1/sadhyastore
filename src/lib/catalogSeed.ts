@@ -25,6 +25,27 @@ export function prepareCatalogImport(products: Product[]): StoreProduct[] {
     const pack = product.variants?.[0] ?? { weight: product.weight, price: product.price };
     return {
       ...product,
+      categoryId: [1, 2, 3, 5].includes(product.categoryId)
+        ? 103
+        : [4, 7].includes(product.categoryId)
+          ? 102
+          : product.categoryId === 6
+            ? 106
+            : product.categoryId === 8
+              ? 107
+              : product.categoryId === 9
+                ? 105
+                : product.categoryId === 10
+                  ? /berr/i.test(product.name)
+                    ? 108
+                    : 102
+                  : product.categoryId === 11
+                    ? 104
+                    : [12, 13].includes(product.categoryId)
+                      ? 101
+                      : product.categoryId,
+      isBestSeller: false,
+      isOffer: product.isOffer ?? [12, 13].includes(product.categoryId),
       weight: pack.weight,
       price: pack.price,
       description: product.description.trim() || product.tagline || product.name,
