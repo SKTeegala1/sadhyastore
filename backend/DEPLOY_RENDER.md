@@ -26,6 +26,8 @@ The Blueprint creates a **new empty database**, not a copy of your Windows SQLit
 
 ## 2. Connect the existing Cloudflare frontend
 
+The repository now targets the Worker named **sadhyastore**, with `main: src/server.ts` so API requests run through the custom gateway before TanStack routing. If Workers & Pages shows both a Worker and a Pages project with this name, use the **Worker attached to www.sadhyasnackboxnutz.com**. Rebuilding/deploying only the Pages project does not update that Worker's custom server entry.
+
 In Render's backend Environment settings, locate **Gateway__Token** (generated automatically by the Blueprint). Copy it privately to Cloudflare as the Worker secret **STORE_API_TOKEN**. Never paste it in chat or GitHub.
 
 In CMD from the repository root:
@@ -89,6 +91,7 @@ The current health endpoint checks process reachability; the acceptance flow abo
 | Port not detected | Keep the default entrypoint; bind to 0.0.0.0 and Render's PORT. |
 | Startup says Gateway__Token missing | Restore/generated backend token; it is required when running on Render. |
 | Health returns 400 | Check AllowedHosts and Render's actual hostname; it is added automatically from RENDER_EXTERNAL_HOSTNAME. |
+| /api/health shows the React 404 page | Pull the corrected wrangler.jsonc (name sadhyastore, main src/server.ts), build and deploy the Worker attached to the custom domain. |
 | Frontend returns 503 | STORE_API_ORIGIN must be configured and point to the healthy HTTPS API. |
 | Frontend returns 403 | Match STORE_API_TOKEN to Gateway__Token and deploy the updated Worker proxy. |
 | Login/CSRF fails | Use the HTTPS storefront and authenticated proxy, not direct Render login requests. |

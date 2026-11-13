@@ -1,9 +1,9 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "snaky-cart-magic",
+  "name": "sadhyastore",
   "compatibility_date": "2026-07-25",
   "compatibility_flags": ["nodejs_compat"],
-  "main": "@tanstack/react-start/server-entry",
+  "main": "src/server.ts",
   "vars": {
     "STORE_API_ORIGIN": "https://sadhya-api.onrender.com"
   },

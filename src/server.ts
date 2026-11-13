@@ -73,14 +73,10 @@ export default {
         headers.delete("x-forwarded-host");
         headers.set("x-forwarded-proto", "https");
         try {
-          const response = await fetch(
-            new Request(upstream, {
-              method: request.method,
-              headers,
-              body: request.body,
-              redirect: "manual",
-            }),
-          );
+          const response = await fetch(new Request(upstream, request), {
+            headers,
+            redirect: "manual",
+          });
           const result = new Response(response.body, response);
           result.headers.set("Cache-Control", "no-store");
           return result;
