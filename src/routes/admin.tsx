@@ -1,3 +1,5 @@
+import PackSizeEditor from "@/components/account/PackSizeEditor";
+import { initialPacks, preparePacks } from "@/lib/packSizes";
 import SlideManager from "@/components/account/SlideManager";
 import CategoryManager from "@/components/account/CategoryManager";
 import ImageUpload from "@/components/account/ImageUpload";
@@ -328,9 +330,7 @@ function ProductEditor({
   const [uploading, setUploading] = useState(0);
   const [p, set] = useState(initial);
   const [error, setError] = useState("");
-  const [variants, setVariants] = useState(
-    initial.variants?.map((v) => `${v.weight} | ${v.price}`).join("\n") ?? "",
-  );
+  const [packEditor, setPackEditor] = useState(() => initialPacks(initial));
   const [nutrition, setNutrition] = useState(
     initial.nutrition.items.map((i) => `${i.name} | ${i.value} | ${i.unit}`).join("\n"),
   );
@@ -340,13 +340,11 @@ function ProductEditor({
     e.preventDefault();
     if (uploading) return;
     setError("");
-    const packs = variants
-      .split("\n")
-      .filter((v) => v.trim())
-      .map((v) => {
-        const [weight, price] = v.split("|").map((s) => s.trim());
-        return { weight, price: Number(price) };
-      });
+    const packs = preparePacks(packEditor);
+    if ("error" in packs) {
+      setError(packs.error);
+      return;
+    }
     const items = nutrition
       .split("\n")
       .filter((v) => v.trim())
@@ -355,14 +353,11 @@ function ProductEditor({
         return { name, value: Number(value), unit };
       });
     if (
-      packs.some((v) => !v.weight || !Number.isFinite(v.price) || v.price <= 0) ||
-      items.some((i) => !i.name || !i.unit || !Number.isFinite(i.value) || i.value < 0)
+      items.some(
+        (item) => !item.name || !item.unit || !Number.isFinite(item.value) || item.value < 0,
+      )
     ) {
-      setError("Check pack sizes and nutrition values. Use the shown format.");
-      return;
-    }
-    if (packs.length && !packs.some((v) => v.weight === p.weight && v.price === p.price)) {
-      setError("Pack sizes must include the default weight and price.");
+      setError("Check nutrition values. Use name | value | unit, one per line.");
       return;
     }
     await onSave({
@@ -371,7 +366,9 @@ function ProductEditor({
       benefits: p.benefits.filter((v) => v.trim()),
       storage: p.storage.filter((v) => v.trim()),
       delivery: p.delivery.filter((v) => v.trim()),
-      variants: packs,
+      variants: packs.variants,
+      weight: packs.weight,
+      price: packs.price,
       nutrition: { ...p.nutrition, items },
     });
   }
@@ -482,21 +479,10 @@ function ProductEditor({
           value={p.badge ?? ""}
           onChange={(e) => update("badge", e.target.value)}
         />
-        <Field
-          label="Default price (₹)"
-          type="number"
-          step="0.01"
-          min="0.01"
-          max="100000"
-          required
-          value={p.price}
-          onChange={(e) => update("price", Number(e.target.value))}
-        />
-        <Field
-          label="Default pack size"
-          required
-          value={p.weight}
-          onChange={(e) => update("weight", e.target.value)}
+        <PackSizeEditor
+          value={packEditor}
+          onChange={setPackEditor}
+          disabled={busy || uploading > 0}
         />
         <Field
           label="Stock quantity (packs, across all sizes)"
@@ -540,16 +526,6 @@ function ProductEditor({
             required
             value={p.description}
             onChange={(e) => update("description", e.target.value)}
-          />
-        </label>
-        <label className="grid gap-1 text-sm">
-          Pack sizes: weight | price (one per line)
-          <textarea
-            className={fieldClass}
-            rows={4}
-            placeholder={"250g | 349\n500g | 689"}
-            value={variants}
-            onChange={(e) => setVariants(e.target.value)}
           />
         </label>
         {lines("Gallery image URLs", "images")}

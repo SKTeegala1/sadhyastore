@@ -145,3 +145,9 @@ Without the configured client ID, the Google button is disabled with a fallback 
 If the Google email already belongs to an existing password account, sign-in does not silently merge/link it. Log in with the existing password, enter that password under My account → Sign-in options, and use the Google button there to explicitly link the Google account with the same email. Subsequent Google sign-in uses that link. Google does not grant the Admin role; new Google accounts remain customers. Existing linked roles are preserved.
 
 Local smoke tests cover phone normalization, uniqueness, login/password validation, profile updates, legacy email login, and malformed Google token rejection. A real Google account sign-in, consent/popup behavior, and account linking require your configured client ID and remain unverified here. Official setup: https://developers.google.com/identity/gsi/web/guides/get-google-api-clientid
+
+## Product pack-size editor
+
+Admin product editing now uses individual **Weight / pack size** and **Price (₹)** rows, with **Add pack size**, **Remove**, and a **Default** radio selector. The selected row supplies the product's default weight and price automatically; the old duplicate default fields and pipe-separated pack-size text box are removed. Saving places the selected default first in the variant list so storefront cards and the product page initially display that same pack.
+
+At least one row is retained. Removing the default selects the first remaining row. Weights must be unique (ignoring spaces/case), with a positive price up to ₹100,000 and at most two decimal places. Existing variants and single-pack products load into the new editor without a database migration. Changes to prices/rows remain drafts until Save product. The API retains its price/default consistency checks, and storefront logic tests cover the editor's derived payload and removal behavior.
