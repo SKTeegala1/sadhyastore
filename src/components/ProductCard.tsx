@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Product } from "@/lib/cart";
 import { useCart } from "@/lib/cart";
 import { ShoppingBag, Sparkles, Truck, Leaf, ShieldCheck, LogOut } from "lucide-react";
@@ -26,7 +26,9 @@ export default function ProductCard({
   );
 
 
+  useEffect(() => { setSelectedVariant(product.variants?.[0] ?? { weight: product.weight, price: product.price }); }, [product]);
    const handleAdd = () => {
+    if (product.stockQuantity === 0) return;
     const el = imgRef.current;
     if (!el) return;
     const r = el.getBoundingClientRect();
@@ -93,11 +95,12 @@ export default function ProductCard({
     </span>
 </div></span>
           <button
+            disabled={product.stockQuantity === 0}
             onClick={handleAdd}
             className="px-4 py-2 rounded-full text-primary-foreground text-sm font-semibold flex items-center gap-1.5 hover:scale-105 transition"
             style={{ background: "var(--gradient-hero)" }}
           >
-            <ShoppingBag className="w-4 h-4" /> Add
+            <ShoppingBag className="w-4 h-4" /> {product.stockQuantity === 0 ? "Sold out" : "Add"}
           </button>
         </div>
       </div>

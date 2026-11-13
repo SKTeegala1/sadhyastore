@@ -1,10 +1,15 @@
-import { PRODUCTS, CATEGORIES, CATEGORY_IDS } from "@/data/products";
+import { useCatalog } from "@/lib/catalog";
+import { CATEGORIES, CATEGORY_IDS } from "@/data/products";
 import CategorySection from "./CategorySection";
 import { PRODUCTS_PER_ROW } from "@/constants/product";
 
 export default function ProductSections() {
+  const { products: PRODUCTS, isPending: catalogLoading, error: catalogError } = useCatalog();
   const categoryIdsToShow = Object.values(CATEGORY_IDS);
 
+  if (catalogLoading) return <p className="p-10 text-center">Loading products…</p>;
+  if (catalogError) return <p role="alert" className="p-10 text-center">Products are unavailable. Please try again later.</p>;
+  if (!PRODUCTS.length) return <p className="p-10 text-center">Our catalog is being prepared. Please check back soon.</p>;
   return (
     <section
       id="shop"

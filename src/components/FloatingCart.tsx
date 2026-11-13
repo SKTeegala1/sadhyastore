@@ -1,3 +1,4 @@
+import { useNavigate } from "@tanstack/react-router";
 import { useCart } from "@/lib/cart";
 import { useEffect, useRef, useState } from "react";
 import { ShoppingBag, X, Minus, Plus, MessageCircle } from "lucide-react";
@@ -6,6 +7,7 @@ const WHATSAPP = "919666585143";
 
 export default function FloatingCart() {
   const { items, open, setOpen, setQty, remove, flies, bump, clear } = useCart();
+  const navigate = useNavigate();
   const cartRef = useRef<HTMLButtonElement>(null);
   const [target, setTarget] = useState({ x: 0, y: 0 });
   const [animBump, setAnimBump] = useState(false);
@@ -28,9 +30,8 @@ export default function FloatingCart() {
   const total = items.reduce((s, i) => s + i.qty * i.price, 0);
 
   const placeOrder = () => {
-    const lines = items.map((i) => `• ${i.name} (${i.weight}) × ${i.qty} — ₹${i.price * i.qty}`).join("\n");
-    const msg = `Hi Sadhya Snak Box! I'd like to place an order:\n\n${lines}\n\n*Total: ₹${total}*\n\nPlease confirm availability. Thank you!`;
-    window.open(`https://wa.me/${WHATSAPP}?text=${encodeURIComponent(msg)}`, "_blank");
+    setOpen(false);
+    void navigate({ to: '/checkout' });
   };
 
   return (
@@ -136,7 +137,7 @@ export default function FloatingCart() {
                   style={{ background: "var(--gradient-hero)", boxShadow: "var(--shadow-warm)" }}
                 >
                   <MessageCircle className="w-5 h-5" />
-                  Place Order on WhatsApp
+                  Continue to checkout
                 </button>
                 <button onClick={clear} className="w-full text-sm text-muted-foreground hover:text-destructive">
                   Clear cart

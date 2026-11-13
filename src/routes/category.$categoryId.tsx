@@ -1,3 +1,4 @@
+import { useCatalog } from "@/lib/catalog";
 import { createFileRoute } from "@tanstack/react-router";
 import { PRODUCTS, CATEGORIES } from "@/data/products";
 import { getProductsByCategory, getCategory } from "@/lib/productUtils";
@@ -14,7 +15,10 @@ function CategoryPage() {
 
   const category = getCategory(Number(categoryId));
 
-  const products = getProductsByCategory(Number(categoryId));
+  const { products: allProducts, isPending, error } = useCatalog();
+  const products = allProducts.filter(p => p.categoryId === Number(categoryId));
+  if (isPending) return <p className="p-10 text-center">Loading products…</p>;
+  if (error) return <p role="alert" className="p-10 text-center">Products are unavailable. Please try again later.</p>;
 
   if (!category) {
     return (

@@ -1,6 +1,7 @@
+import { useCatalog } from "@/lib/catalog";
 import { Search } from "lucide-react";
 import { useState } from "react";
-import { CATEGORIES, PRODUCTS } from "@/data/products";
+import { CATEGORIES } from "@/data/products";
 import { useNavigate } from "@tanstack/react-router";
 import { Product } from "@/lib/cart";
 import { useEffect, useRef ,useMemo} from "react";
@@ -13,6 +14,7 @@ type SearchBarProps = {
 export default function SearchBar({
     onNavigate,
 }: SearchBarProps) {
+  const { products: PRODUCTS, isPending: catalogLoading, error: catalogError } = useCatalog();
     const navigate = useNavigate();
     const [query, setQuery] = useState("");
     const [selectedIndex, setSelectedIndex] = useState(-1);
@@ -41,7 +43,7 @@ export default function SearchBar({
 
     }).slice(0, 6);
 
-}, [query]);
+}, [query, PRODUCTS]);
 
 useEffect(() => {
 

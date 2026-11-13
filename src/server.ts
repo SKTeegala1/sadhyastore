@@ -47,6 +47,43 @@ function isH3SwallowedErrorBody(body: string): boolean {
 export default {
   async fetch(request: Request, env: unknown, ctx: unknown) {
     try {
+      if (new URL(request.url).pathname.startsWith("/api/")) {
+        const origin = (env as { STORE_API_ORIGIN?: string } | undefined)?.STORE_API_ORIGIN;
+        if (!origin)
+          return Response.json(
+            { message: "The store API has not been configured." },
+            { status: 503 },
+          );
+        const upstream = new URL(origin);
+        if (upstream.protocol !== "https:")
+          return Response.json({ message: "The store API requires HTTPS." }, { status: 503 });
+        const incoming = new URL(request.url);
+        upstream.pathname = incoming.pathname;
+        upstream.search = incoming.search;
+        const headers = new Headers(request.headers);
+        headers.delete("host");
+        headers.delete("x-forwarded-for");
+        headers.delete("x-forwarded-host");
+        headers.set("x-forwarded-proto", "https");
+        try {
+          const response = await fetch(
+            new Request(upstream, {
+              method: request.method,
+              headers,
+              body: request.body,
+              redirect: "manual",
+            }),
+          );
+          const result = new Response(response.body, response);
+          result.headers.set("Cache-Control", "no-store");
+          return result;
+        } catch {
+          return Response.json(
+            { message: "The store server is temporarily unavailable." },
+            { status: 503 },
+          );
+        }
+      }
       const handler = await getServerEntry();
       const response = await handler.fetch(request, env, ctx);
       return await normalizeCatastrophicSsrResponse(response);

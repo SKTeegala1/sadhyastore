@@ -10,6 +10,7 @@ import { defineConfig } from "vite";
 const root = path.dirname(fileURLToPath(import.meta.url));
 
 export default defineConfig({
+  server: { proxy: { "/api": { target: "http://localhost:5050", changeOrigin: true } } },
   resolve: {
     alias: {
       "@": path.resolve(root, "./src"),

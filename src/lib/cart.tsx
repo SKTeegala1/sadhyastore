@@ -37,6 +37,8 @@ export type Category = {
 
 export type Product = {
   id: string;
+  stockQuantity?: number;
+  isActive?: boolean;
   name: string;
   categoryId: number;
   image: string;          // Primary image (used by cards & cart animation)
@@ -98,17 +100,19 @@ export function CartProvider({
   children: ReactNode;
 }) {
   const [items, setItems] = useState<CartItem[]>([]);
+  const [hydrated, setHydrated] = useState(false);
   const [open, setOpen] = useState(false);
   const [flies, setFlies] = useState<FlyEvent[]>([]);
   const [bump, setBump] = useState(0);
 
   useEffect(() => {
-  console.log("CartProvider Mounted");
-
-  return () => {
-    console.log("CartProvider Unmounted");
-  };
-}, []);
+    try {
+      const saved = JSON.parse(localStorage.getItem('sadhya.cart') ?? '[]');
+      if (Array.isArray(saved)) setItems(saved.filter(i => typeof i.id === 'string' && typeof i.cartKey === 'string' && typeof i.weight === 'string' && Number.isFinite(i.price) && Number.isInteger(i.qty) && i.qty > 0 && i.qty <= 100));
+    } catch { /* Invalid saved cart starts empty. */ }
+    setHydrated(true);
+  }, []);
+  useEffect(() => { if (hydrated) { try { localStorage.setItem('sadhya.cart', JSON.stringify(items)); } catch { /* Shopping can continue without persistence. */ } } }, [items, hydrated]);
 
   const add = useCallback(
     (

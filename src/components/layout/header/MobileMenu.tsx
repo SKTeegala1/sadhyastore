@@ -1,3 +1,4 @@
+import AccountNav from "@/components/account/AccountNav";
 import { X } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 
@@ -95,6 +96,7 @@ export default function MobileMenu({
 />
         </div>
 
+        <div className="border-t p-5"><AccountNav onNavigate={onClose} /></div>
         {/* Spacer */}
         <div className="flex-1" />
 

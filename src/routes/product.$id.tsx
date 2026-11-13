@@ -1,5 +1,6 @@
+import { useCatalog } from "@/lib/catalog";
 import { createFileRoute } from "@tanstack/react-router";
-import { CATEGORIES, PRODUCTS } from "@/data/products";
+import { CATEGORIES } from "@/data/products";
 import ProductHeader from "@/components/product/ProductHeader";
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
@@ -18,6 +19,7 @@ export const Route = createFileRoute("/product/$id")({
 });
 
 function ProductDetailsPage() {
+  const { products: PRODUCTS, isPending: catalogLoading, error: catalogError } = useCatalog();
   const { id } = Route.useParams();
 
   const { items } = useCart();
@@ -36,6 +38,8 @@ function ProductDetailsPage() {
   )
   .slice(0, 4);
 
+  if (catalogLoading) return <p className="p-10 text-center">Loading product…</p>;
+  if (catalogError) return <p role="alert" className="p-10 text-center">Product details are unavailable. Please try again later.</p>;
   if (!product) {
     return (
       <div className="container mx-auto py-20 text-center">
