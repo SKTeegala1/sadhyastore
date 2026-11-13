@@ -58,7 +58,8 @@ export default function SlideManager() {
           <h2 className="text-xl font-bold">Homepage slides</h2>
           <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
             Upload desktop banners and optional mobile versions. Move slides into order, then save
-            changes. Images fit inside the banner without cropping.
+            changes. Images fill the full-width banner. Use matching aspect ratios to control
+            cropping.
           </p>
         </div>
         <button
@@ -129,7 +130,7 @@ export default function SlideManager() {
                 <img
                   src={slide.image}
                   alt={slide.alt || "Slide preview"}
-                  className="h-full w-full object-contain"
+                  className="h-full w-full object-cover"
                 />
               </div>
             )}
