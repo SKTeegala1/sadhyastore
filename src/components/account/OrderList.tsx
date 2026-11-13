@@ -49,6 +49,14 @@ export default function OrderList({
             {o.address.fullName} · {o.address.line1} {o.address.line2}, {o.address.city},{" "}
             {o.address.state} {o.address.postalCode} · {o.address.phone}
           </p>
+          {o.additionalDetails && (
+            <div className="mt-4 rounded-xl bg-muted/50 p-3 text-sm">
+              <p className="font-semibold">Additional order details</p>
+              <p className="mt-1 whitespace-pre-wrap break-words text-muted-foreground">
+                {o.additionalDetails}
+              </p>
+            </div>
+          )}
           {o.address.latitude != null && o.address.longitude != null && (
             <a
               href={mapsUrl({ latitude: o.address.latitude, longitude: o.address.longitude })}

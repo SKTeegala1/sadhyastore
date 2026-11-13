@@ -1,3 +1,4 @@
+import RelatedProducts from "@/components/product/RelatedProducts";
 import { useCategories } from "@/lib/categories";
 import { useCatalog } from "@/lib/catalog";
 import { createFileRoute } from "@tanstack/react-router";
@@ -29,10 +30,6 @@ function ProductDetailsPage() {
   const product = PRODUCTS.find((p) => p.id === id);
 
   const category = CATEGORIES.find((c) => c.id === product?.categoryId);
-
-  const relatedProducts = PRODUCTS.filter(
-    (p) => p.categoryId === product?.categoryId && p.id !== product?.id,
-  ).slice(0, 4);
 
   if (catalogLoading) return <p className="p-10 text-center">Loading product…</p>;
   if (catalogError)
@@ -76,7 +73,7 @@ function ProductDetailsPage() {
         />
         <ProductContent product={product} />
 
-        <ProductSection title="You May Also Like" products={relatedProducts} />
+        <RelatedProducts categoryId={product.categoryId} productId={product.id} />
       </section>
     </>
   );

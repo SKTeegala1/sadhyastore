@@ -104,13 +104,16 @@ with tempfile.TemporaryDirectory(prefix='sadhya-api-test-') as directory:
             address = customer.expect(200, '/addresses', 'POST', dict(fullName='Customer',phone='9000000000',line1='Test street',line2='',city='Hyderabad',state='Telangana',postalCode='502032',latitude=17.519,longitude=78.284))
             customer.expect(400, '/addresses', 'POST', dict(address['details'], latitude=999))
             other.expect(404, '/addresses/' + address['id'], 'DELETE')
-            order = dict(addressId=address['id'], requestKey='10000000-0000-0000-0000-000000000001', items=[dict(productId='test-almond',weight='250g',quantity=2,price=1)])
+            order = dict(addressId=address['id'], requestKey='10000000-0000-0000-0000-000000000001', additionalDetails='  Ring the bell.\nGift wrap if available.  ', items=[dict(productId='test-almond',weight='250g',quantity=2,price=1)])
             other.expect(400, '/orders', 'POST', order)
             invalid = dict(order, requestKey='10000000-0000-0000-0000-000000000002', items=[dict(productId='test-almond',weight='2kg',quantity=1)])
             customer.expect(400, '/orders', 'POST', invalid)
+            customer.expect(400, '/orders', 'POST', dict(order, additionalDetails='x' * 1001))
             placed = customer.expect(200, '/orders', 'POST', order)
             assert placed['total'] == 400, placed
             assert placed['address']['latitude'] == 17.519
+            assert placed['additionalDetails'] == 'Ring the bell.\nGift wrap if available.'
+            assert admin.expect(200, '/admin/orders')[0]['additionalDetails'] == placed['additionalDetails']
             again = customer.expect(200, '/orders', 'POST', order)
             assert again['id'] == placed['id']
             assert guest.expect(200, '/products')[0]['stockQuantity'] == 3
@@ -137,6 +140,7 @@ with tempfile.TemporaryDirectory(prefix='sadhya-api-test-') as directory:
                 payload = json.loads(legacy.execute("SELECT Json FROM Products WHERE Id='test-almond'").fetchone()[0])
                 payload['categoryId'] = 2
                 legacy.execute("UPDATE Products SET Json=? WHERE Id='test-almond'", (json.dumps(payload),))
+                legacy.execute('ALTER TABLE Orders DROP COLUMN AdditionalDetails')
                 counts = [legacy.execute(f'SELECT COUNT(*) FROM {table}').fetchone()[0] for table in ['AspNetUsers','Addresses','Orders']]
             process = subprocess.Popen([os.environ.get('DOTNET', 'dotnet'), 'run', '--no-build', '--project', str(ROOT / 'backend/Sadhya.Api')], env=env, stdout=log, stderr=log)
             for attempt in range(100):
@@ -146,6 +150,8 @@ with tempfile.TemporaryDirectory(prefix='sadhya-api-test-') as directory:
                 time.sleep(.1)
             else: raise RuntimeError('Upgraded API failed to start')
             with sqlite3.connect(f'{directory}/test.db') as upgraded:
+                assert any(row[1] == 'AdditionalDetails' for row in upgraded.execute('PRAGMA table_info(Orders)'))
+                assert upgraded.execute('SELECT AdditionalDetails FROM Orders').fetchone()[0] is None
                 assert counts == [upgraded.execute(f'SELECT COUNT(*) FROM {table}').fetchone()[0] for table in ['AspNetUsers','Addresses','Orders']]
                 assert json.loads(upgraded.execute("SELECT Json FROM Products WHERE Id='test-almond'").fetchone()[0])['categoryId'] == 103
             print('PASS: ordered categories, category CRUD/reassignment, admin-only raster uploads, media retrieval, delivery coordinates and non-destructive legacy database upgrade')

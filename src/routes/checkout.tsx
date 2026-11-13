@@ -6,7 +6,7 @@ import { api, message } from "@/lib/api";
 import { money, type Order } from "@/lib/orders";
 import RequireAccount from "@/components/account/RequireAccount";
 import AddressBook from "@/components/account/AddressBook";
-import { Panel, ErrorNotice, buttonClass } from "@/components/account/StoreForms";
+import { Panel, ErrorNotice, buttonClass, fieldClass } from "@/components/account/StoreForms";
 export const Route = createFileRoute("/checkout")({
   component: () => (
     <RequireAccount next="/checkout">
@@ -17,6 +17,7 @@ export const Route = createFileRoute("/checkout")({
 function Checkout() {
   const { items, clear } = useCart();
   const cache = useQueryClient();
+  const [additionalDetails, setAdditionalDetails] = useState("");
   const [address, setAddress] = useState("");
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
@@ -35,6 +36,7 @@ function Checkout() {
         method: "POST",
         body: JSON.stringify({
           addressId: address,
+          additionalDetails: additionalDetails.trim(),
           requestKey: requestKey.current,
           items: items.map((i) => ({ productId: i.id, weight: i.weight, quantity: i.qty })),
         }),
@@ -57,7 +59,7 @@ function Checkout() {
         subtitle={`Order #${order.id.slice(0, 8).toUpperCase()} has been received.`}
       >
         <p>Pay {money(order.total)} on delivery. Your order is pending store confirmation.</p>
-        <Link to="/account" className="mt-6 inline-block font-semibold text-primary">
+        <Link to="/account" hash="orders" className="mt-6 inline-block font-semibold text-primary">
           View your orders →
         </Link>
       </Panel>
@@ -76,6 +78,22 @@ function Checkout() {
         <div>
           <h2 className="mb-4 text-xl font-semibold">Delivery address</h2>
           <AddressBook selected={address} onSelect={setAddress} />
+          <label className="mt-6 grid gap-2 text-sm font-medium">
+            <span>Additional order details (optional)</span>
+            <textarea
+              className={fieldClass}
+              rows={4}
+              maxLength={1000}
+              disabled={busy}
+              value={additionalDetails}
+              onChange={(e) => setAdditionalDetails(e.target.value)}
+              placeholder="Delivery instructions, preferred delivery time, gift message or other requests…"
+            />
+            <span className="text-xs font-normal text-muted-foreground">
+              {additionalDetails.length}/1000 characters. Requests are subject to store
+              confirmation.
+            </span>
+          </label>
         </div>
         <aside className="h-fit rounded-2xl border bg-card p-6">
           <h2 className="text-xl font-semibold">Order summary</h2>

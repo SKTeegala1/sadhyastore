@@ -1,3 +1,4 @@
+import { Package, UserRound } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { useAuth } from "@/lib/auth";
@@ -11,8 +12,25 @@ export default function AccountNav({ onNavigate }: { onNavigate?: () => void }) 
     <div className="flex flex-wrap items-center gap-3 text-sm">
       {user ? (
         <>
-          <Link to="/account" onClick={onNavigate}>
-            My account
+          <Link
+            to="/account"
+            hash="orders"
+            onClick={onNavigate}
+            aria-label="My orders"
+            className="inline-flex min-h-11 items-center gap-1.5"
+          >
+            <Package className="h-5 w-5" aria-hidden="true" />
+            <span>Orders</span>
+          </Link>
+          <Link
+            to="/account"
+            onClick={onNavigate}
+            aria-label="My account"
+            title="My account"
+            className="inline-flex h-11 w-11 items-center justify-center"
+          >
+            <UserRound className="h-5 w-5" aria-hidden="true" />
+            <span className="sr-only">My account</span>
           </Link>
           {user.isAdmin && (
             <Link to="/admin" onClick={onNavigate} className="font-semibold text-primary">
@@ -39,7 +57,7 @@ export default function AccountNav({ onNavigate }: { onNavigate?: () => void }) 
       ) : (
         <Link
           to="/login"
-          search={{ next: "/account" }}
+          search={{ next: "/" }}
           onClick={onNavigate}
           className="font-semibold text-primary"
         >

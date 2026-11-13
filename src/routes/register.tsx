@@ -1,10 +1,11 @@
+import { loginDestination } from "@/lib/loginDestination";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState, type FormEvent } from "react";
 import { api, message } from "@/lib/api";
 import { Panel, Field, ErrorNotice, buttonClass } from "@/components/account/StoreForms";
 export const Route = createFileRoute("/register")({
   validateSearch: (search: Record<string, unknown>) => ({
-    next: search.next === "/checkout" || search.next === "/admin" ? search.next : "/account",
+    next: loginDestination(search.next),
   }),
   component: Register,
 });

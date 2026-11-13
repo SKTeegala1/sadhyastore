@@ -94,3 +94,13 @@ npm run dev
 `DEMO_MAP_ID` is used for local testing if the map ID is omitted. Configure a real map ID for production. These are frontend build-time variables; set them on the Cloudflare build environment before building/deploying. The browser key is visible by design and must have origin/API restrictions. Do not commit unrestricted keys. The picker does not reverse-geocode or autocomplete street addresses; customers complete those fields themselves. Live Google map loading requires real account configuration and was not verified in this workspace; non-map flows and persisted coordinates are tested.
 
 Cash on delivery remains the checkout method. Razorpay integration is intentionally deferred.
+
+## Checkout and shopping improvements
+
+- New addresses use a required state/union-territory dropdown. Existing saved addresses remain unchanged.
+- Checkout includes **Additional order details**, up to 1000 characters, for delivery instructions, preferred times, gift notes or other requests. Notes appear in customer and admin order history and do not imply the store has accepted a special request. The API trims and validates the value.
+- Existing databases receive a nullable `Orders.AdditionalDetails` column through `OrderNotesUpgrade.cs` on backend startup. Existing orders have no notes; accounts, stock, addresses and order history remain intact. Back up the database before upgrading, and start one backend instance for the initial schema update. SQLite upgrade/preservation is tested; SQL Server requires runtime verification.
+- Regular login now opens Home. Login requested from Checkout returns to Checkout; explicit protected account/admin links retain their destination. The menu includes a labelled Orders icon linking to the order-history section, plus the account icon for saved addresses.
+- Product details show **Related Products**, with same-category products first and fallback suggestions from other collections. Category pages show **You May Also Like** without repeating products already listed. Hidden/current products are excluded; stock and featured selection affect ranking. This is a simple catalog recommendation, not personalized tracking.
+- A **Need help?** WhatsApp link opens a customer-initiated chat to **9666585143**. It sends nothing automatically and is not a chatbot or WhatsApp Business API integration.
+- Additional storefront logic checks: `node tests/storefront_logic.cjs`.

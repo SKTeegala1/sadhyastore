@@ -1,10 +1,11 @@
+import { INDIAN_STATES_AND_UTS } from "@/data/indianStates";
 import DeliveryLocation from "./DeliveryLocation";
 import { mapsUrl, type LocationPin } from "@/lib/googleMaps";
 import { useState, type FormEvent } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { api, message } from "@/lib/api";
 import type { Address } from "@/lib/orders";
-import { Field, ErrorNotice, buttonClass } from "./StoreForms";
+import { Field, ErrorNotice, buttonClass, fieldClass } from "./StoreForms";
 export default function AddressBook({
   selected,
   onSelect,
@@ -163,13 +164,25 @@ export default function AddressBook({
             maxLength={100}
             required
           />
-          <Field
-            label="State"
-            name="state"
-            autoComplete="shipping address-level1"
-            maxLength={100}
-            required
-          />
+          <label className="grid min-w-0 gap-1.5 text-sm font-medium">
+            <span>State / Union territory</span>
+            <select
+              name="state"
+              autoComplete="shipping address-level1"
+              required
+              defaultValue=""
+              className={fieldClass}
+            >
+              <option value="" disabled>
+                Select state / union territory
+              </option>
+              {INDIAN_STATES_AND_UTS.map((state) => (
+                <option key={state} value={state}>
+                  {state}
+                </option>
+              ))}
+            </select>
+          </label>
           <Field
             label="PIN code"
             name="postalCode"

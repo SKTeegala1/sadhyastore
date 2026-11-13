@@ -1,3 +1,4 @@
+import { loginDestination } from "@/lib/loginDestination";
 import { Link } from "@tanstack/react-router";
 import type { ReactNode } from "react";
 import { useAuth } from "@/lib/auth";
@@ -28,7 +29,7 @@ export default function RequireAccount({
         <p>Your addresses and orders are saved securely to your account.</p>
         <Link
           to="/login"
-          search={{ next }}
+          search={{ next: loginDestination(next) }}
           className="mt-5 inline-block font-semibold text-primary"
         >
           Log in / Register →

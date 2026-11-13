@@ -41,6 +41,7 @@ public sealed class OrderRow
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public string Status { get; set; } = "Pending";
     public decimal Total { get; set; }
+    [MaxLength(1000)] public string? AdditionalDetails { get; set; }
     public string AddressJson { get; set; } = "";
     public string ItemsJson { get; set; } = "";
     [MaxLength(80)] public string RequestKey { get; set; } = "";
@@ -56,7 +57,7 @@ public record StoreProduct(string Id, string Name, int CategoryId, string Image,
     decimal Rating, int Reviews, string? Badge, int StockQuantity = 100, bool IsActive = true, bool IsBestSeller = false, bool IsOffer = false);
 public record AddressInput(string FullName, string Phone, string Line1, string Line2, string City, string State, string PostalCode, double? Latitude = null, double? Longitude = null);
 public record OrderItemInput(string ProductId, string Weight, int Quantity);
-public record OrderInput(Guid AddressId, List<OrderItemInput> Items, string RequestKey);
+public record OrderInput(Guid AddressId, List<OrderItemInput> Items, string RequestKey, string? AdditionalDetails = null);
 public record OrderLine(string ProductId, string Name, string Image, string Weight, int Quantity, decimal UnitPrice);
 public record OrderStatusInput(string Status);
 

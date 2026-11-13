@@ -18,5 +18,6 @@ jobs:
       - run: npm ci
       - run: npm run build
       - run: npx tsc --noEmit
+      - run: node tests/storefront_logic.cjs
       - run: dotnet build backend/Sadhya.Api
       - run: python3 tests/api_smoke.py

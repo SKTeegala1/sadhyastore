@@ -49,6 +49,7 @@ using (var scope = app.Services.CreateScope()) {
     // Create a new schema, then apply the versioned additive catalog upgrade to existing stores.
     await db.Database.EnsureCreatedAsync();
     await CatalogUpgrade.Run(db, json);
+    await OrderNotesUpgrade.Run(db);
     var email = builder.Configuration["BootstrapAdmin:Email"];
     var password = builder.Configuration["BootstrapAdmin:Password"];
     if (!string.IsNullOrWhiteSpace(email) && !string.IsNullOrWhiteSpace(password)) {
@@ -139,6 +140,7 @@ api.MapDelete("/addresses/{id:guid}", async (Guid id, ClaimsPrincipal user, Stor
 api.MapPost("/orders", async (OrderInput input, ClaimsPrincipal user, StoreDb db) => {
     var uid = user.FindFirstValue(ClaimTypes.NameIdentifier)!;
     if (!Guid.TryParse(input.RequestKey, out _) || input.Items is null || input.Items.Count is < 1 or > 100 || input.Items.Any(i => i.Quantity is < 1 or > 100)) return Results.BadRequest(new { message = "Invalid order." });
+    if ((input.AdditionalDetails?.Length ?? 0) > 1000) return Results.BadRequest(new { message = "Additional order details must be 1000 characters or fewer." });
     // Serializable transaction + conditional stock update prevents concurrent overselling.
     await using var tx = await db.Database.BeginTransactionAsync(System.Data.IsolationLevel.Serializable);
     var previous = await db.Orders.SingleOrDefaultAsync(o => o.UserId == uid && o.RequestKey == input.RequestKey);
@@ -162,7 +164,7 @@ api.MapPost("/orders", async (OrderInput input, ClaimsPrincipal user, StoreDb db
         var changed = await db.Products.Where(x => x.Id == row.Id && x.StockQuantity >= quantity).ExecuteUpdateAsync(s => s.SetProperty(x => x.StockQuantity, x => x.StockQuantity - quantity).SetProperty(x => x.Json, payload));
         if (changed != 1) return Results.Conflict(new { message = "Stock changed. Please retry." });
     }
-    var order = new OrderRow { UserId = uid, CustomerEmail = user.Identity?.Name ?? "", AddressJson = address.Json, ItemsJson = JsonSerializer.Serialize(lines, json), Total = lines.Sum(l => l.UnitPrice * l.Quantity), RequestKey = input.RequestKey };
+    var order = new OrderRow { AdditionalDetails = input.AdditionalDetails?.Trim(), UserId = uid, CustomerEmail = user.Identity?.Name ?? "", AddressJson = address.Json, ItemsJson = JsonSerializer.Serialize(lines, json), Total = lines.Sum(l => l.UnitPrice * l.Quantity), RequestKey = input.RequestKey };
     db.Orders.Add(order); await db.SaveChangesAsync(); await tx.CommitAsync(); return Results.Ok(OrderView(order));
 }).RequireAuthorization();
 api.MapGet("/orders", async (ClaimsPrincipal user, StoreDb db) => (await db.Orders.AsNoTracking().Where(o => o.UserId == user.FindFirstValue(ClaimTypes.NameIdentifier)).OrderByDescending(o => o.CreatedAt).ToListAsync()).Select(OrderView)).RequireAuthorization();
@@ -176,7 +178,7 @@ adminApi.MapPut("/orders/{id:guid}/status", async (Guid id, OrderStatusInput inp
 });
 app.Run();
 
-object OrderView(OrderRow o) => new { o.Id, o.CustomerEmail, o.CreatedAt, o.Status, o.Total, paymentMethod = "Cash on delivery", address = JsonSerializer.Deserialize<AddressInput>(o.AddressJson, json), items = JsonSerializer.Deserialize<List<OrderLine>>(o.ItemsJson, json) };
+object OrderView(OrderRow o) => new { o.Id, o.CustomerEmail, o.CreatedAt, o.Status, o.Total, o.AdditionalDetails, paymentMethod = "Cash on delivery", address = JsonSerializer.Deserialize<AddressInput>(o.AddressJson, json), items = JsonSerializer.Deserialize<List<OrderLine>>(o.ItemsJson, json) };
 static string? ValidateProduct(StoreProduct p) {
     if (!Regex.IsMatch(p.Id ?? "", @"^[a-z0-9][a-z0-9-]{0,79}$") || string.IsNullOrWhiteSpace(p.Name) || p.Name.Length > 150 || p.CategoryId < 1 || p.Price <= 0 || p.Price > 100000 || p.StockQuantity < 0 || p.StockQuantity > 1000000 || string.IsNullOrWhiteSpace(p.Weight) || string.IsNullOrWhiteSpace(p.Description) || p.Benefits is null || p.Storage is null || p.Delivery is null || p.Nutrition is null || p.Nutrition.Items is null || p.Rating < 0 || p.Rating > 5 || p.Reviews < 0) return "Complete all product fields with valid prices and stock.";
     bool ImageValid(string image) => CatalogEndpoints.ImageValid(image);

@@ -25,7 +25,9 @@ function Account() {
     <Panel title={`Hello, ${user?.fullName}`} subtitle="Your delivery addresses and order history.">
       <h2 className="mb-4 text-xl font-semibold">Saved addresses</h2>
       <AddressBook />
-      <h2 className="mb-4 mt-10 text-xl font-semibold">Your orders</h2>
+      <h2 id="orders" className="mb-4 mt-10 scroll-mt-28 text-xl font-semibold">
+        Your orders
+      </h2>
       <ErrorNotice text={error ? message(error) : ""} />
       {isPending ? <p>Loading orders…</p> : <OrderList orders={data} />}
     </Panel>

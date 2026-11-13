@@ -1,3 +1,4 @@
+import RelatedProducts from "@/components/product/RelatedProducts";
 import { useCategories } from "@/lib/categories";
 import { useCatalog } from "@/lib/catalog";
 import { createFileRoute } from "@tanstack/react-router";
@@ -62,6 +63,11 @@ function CategoryPage() {
       ) : (
         <div className="text-center py-20 text-muted-foreground">No products available.</div>
       )}
+      <RelatedProducts
+        categoryId={Number(categoryId)}
+        excludeIds={products.map((p) => p.id)}
+        title="You May Also Like"
+      />
     </section>
   );
 }
