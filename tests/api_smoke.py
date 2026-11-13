@@ -68,6 +68,22 @@ with tempfile.TemporaryDirectory(prefix='sadhya-api-test-') as directory:
                 client.expect(200, '/auth/login', 'POST', {'email':email,'password':PASSWORD})
                 assert not client.expect(200, '/auth/me')['isAdmin']
                 client.expect(403, '/admin/products')
+            assert not guest.expect(200, '/slides')['configured']
+            guest.expect(401, '/admin/slides')
+            customer.expect(403, '/admin/slides')
+            slide = dict(id='20000000-0000-0000-0000-000000000001',image='/slides/Banner1.png',mobileImage='',alt='Test slide',isActive=True)
+            customer.expect(403, '/admin/slides', 'PUT', [slide])
+            admin.expect(400, '/admin/slides', 'PUT', [dict(slide,image='javascript:alert(1)')])
+            admin.expect(200, '/admin/slides', 'PUT', [slide,dict(slide,id='20000000-0000-0000-0000-000000000002',isActive=False)])
+            assert len(guest.expect(200, '/slides')['slides']) == 1
+            assert len(admin.expect(200, '/admin/slides')['slides']) == 2
+            edited = dict(slide,image='/updated.png',mobileImage='/mobile.png',alt='Updated banner')
+            second = dict(slide,id='20000000-0000-0000-0000-000000000002',alt='Second banner')
+            admin.expect(200, '/admin/slides', 'PUT', [second,edited])
+            assert guest.expect(200, '/slides')['slides'][0]['alt'] == 'Second banner'
+            assert guest.expect(200, '/slides')['slides'][1]['mobileImage'] == '/mobile.png'
+            admin.expect(200, '/admin/slides', 'PUT', [])
+            assert guest.expect(200, '/slides') == {'configured':True,'slides':[]}
             categories = guest.expect(200, '/categories')
             assert [c['name'] for c in categories] == ['Offer Zone','Dry Fruits','Nuts','Spices','Healthy Snacks','Dates','Seeds','Berries','Rice & Millets','Herbal Powders','Oils']
             customer.expect(403, '/admin/categories', 'POST', {'name':'Forbidden','image':'/test.jpg','sortOrder':12})
@@ -85,6 +101,8 @@ with tempfile.TemporaryDirectory(prefix='sadhya-api-test-') as directory:
             admin.expect(400, '/admin/media', 'POST', multipart(b'<svg>not permitted</svg>'), content_type=upload_type)
             media = admin.expect(200, '/admin/media', 'POST', upload, content_type=upload_type)
             assert guest.expect(200, media['url'][4:]) == png
+            admin.expect(200, '/admin/slides', 'PUT', [dict(slide, image=media['url'])])
+            assert guest.expect(200, '/slides')['slides'][0]['image'] == media['url']
             admin.expect(200, '/admin/categories/103', 'PUT', {'name':'Nuts','image':media['url'],'sortOrder':2})
             products = json.loads(Path(os.environ['CATALOG_FIXTURE']).read_text()) if os.environ.get('CATALOG_FIXTURE') else json.loads(subprocess.check_output(['node', str(ROOT / 'tests/export_catalog.cjs')]))
             if products:

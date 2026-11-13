@@ -1,3 +1,4 @@
+import SlideManager from "@/components/account/SlideManager";
 import CategoryManager from "@/components/account/CategoryManager";
 import ImageUpload from "@/components/account/ImageUpload";
 import { useCategories } from "@/lib/categories";
@@ -53,7 +54,7 @@ function Admin() {
     queryKey: ["admin-orders"],
     queryFn: () => api<Order[]>("/admin/orders"),
   });
-  const [tab, setTab] = useState<"products" | "categories" | "orders">("products");
+  const [tab, setTab] = useState<"products" | "categories" | "slides" | "orders">("products");
   const [query, setQuery] = useState("");
   const [draft, setDraft] = useState<StoreProduct | null>(null);
   const [isNew, setIsNew] = useState(false);
@@ -98,14 +99,20 @@ function Admin() {
           </div>
         ))}
       </div>
-      <div className="mb-5 flex gap-5 border-b pb-3">
-        {(["products", "categories", "orders"] as const).map((t) => (
+      <div className="mb-5 flex flex-wrap gap-2 border-b pb-3 sm:gap-5">
+        {(["products", "categories", "slides", "orders"] as const).map((t) => (
           <button
             key={t}
             className={tab === t ? "font-bold text-primary" : "text-muted-foreground"}
             onClick={() => setTab(t)}
           >
-            {t === "products" ? "Products" : t === "categories" ? "Categories" : "Orders"}
+            {t === "products"
+              ? "Products"
+              : t === "categories"
+                ? "Categories"
+                : t === "slides"
+                  ? "Slides"
+                  : "Orders"}
           </button>
         ))}
       </div>
@@ -273,6 +280,8 @@ function Admin() {
             />
           )}
         </>
+      ) : tab === "slides" ? (
+        <SlideManager />
       ) : tab === "categories" ? (
         <CategoryManager />
       ) : (

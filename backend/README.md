@@ -104,3 +104,13 @@ Cash on delivery remains the checkout method. Razorpay integration is intentiona
 - Product details show **Related Products**, with same-category products first and fallback suggestions from other collections. Category pages show **You May Also Like** without repeating products already listed. Hidden/current products are excluded; stock and featured selection affect ranking. This is a simple catalog recommendation, not personalized tracking.
 - A **Need help?** WhatsApp link opens a customer-initiated chat to **9666585143**. It sends nothing automatically and is not a chatbot or WhatsApp Business API integration.
 - Additional storefront logic checks: `node tests/storefront_logic.cjs`.
+
+## Homepage slide management and layout
+
+**Admin → Slides** manages the homepage carousel. Upload/replace desktop images and optional mobile images, enter descriptive alt text, use the up/down controls to reorder, toggle visibility, or remove slides. Click **Save changes / Save slides** to publish the full slide list. Images use the same database-backed raster upload service (JPEG/PNG/WebP, max 5 MB each). Up to 30 slides are supported. Removing all slides and saving intentionally hides the carousel; disabled slides remain editable in admin. Unsaved changes can be discarded.
+
+Existing banners are provided as the initial set under stable `/slides/` URLs. After the first save, the database slide settings control the carousel. These settings live in the existing StoreSettings table; this update needs no new table. Public requests only return active slides; admin read/write routes require the Admin role and writes require CSRF verification. Other storefront tabs refresh slide settings about every 30 seconds or on focus. Backups include both saved settings and uploaded image data.
+
+Use wide desktop banners (recommended 8:3) and optionally a 4:3 mobile version. The carousel fits images without cropping, supports swipe, has controls outside the image, uses five-second autoplay, and pauses for hover/keyboard focus/reduced-motion preferences. The desktop banner container now aligns to the category/product content width. Mobile images keep a consistent carousel height; images with different proportions may have padding. When no mobile version exists anywhere in the active set, mobile uses the wide desktop aspect ratio.
+
+Header navigation/search/account spacing and product image/title/price/Add-button alignment are updated, admin tabs wrap on small screens, and public floating help/cart buttons are omitted on admin screens. The footer WhatsApp number is aligned to the store contact 9666585143. Browser/mobile visual verification is still required in a real browser; workspace browser restrictions prevented that verification here.

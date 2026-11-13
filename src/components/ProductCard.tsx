@@ -52,7 +52,7 @@ export default function ProductCard({ product }: ProductCardProps) {
     >
       <div className="aspect-square overflow-hidden bg-muted">
         <div
-          className="cursor-pointer"
+          className="h-full w-full cursor-pointer"
           onClick={() =>
             navigate({
               to: "/product/$id",
@@ -72,8 +72,10 @@ export default function ProductCard({ product }: ProductCardProps) {
         </div>
       </div>
       <div className="p-3 sm:p-5 flex-1 min-w-0 flex flex-col">
-        <h3 className="font-display font-bold text-sm sm:text-lg text-secondary">{product.name}</h3>
-        <p className="text-xs text-muted-foreground mt-1">{product.tagline}</p>
+        <h3 className="min-h-10 line-clamp-2 font-display font-bold text-sm sm:min-h-14 sm:text-lg text-secondary">
+          {product.name}
+        </h3>
+        <p className="min-h-8 line-clamp-2 text-xs text-muted-foreground mt-1">{product.tagline}</p>
         <div className="flex flex-wrap gap-1 sm:gap-2 mt-3">
           {(product.variants ?? []).map((variant) => (
             <button
@@ -90,7 +92,7 @@ export default function ProductCard({ product }: ProductCardProps) {
             </button>
           ))}
         </div>
-        <div className="mt-auto flex flex-wrap items-center justify-between gap-2 pt-3">
+        <div className="mt-auto grid gap-2 pt-4">
           <div className="flex flex-wrap items-center gap-1">
             <span className="text-gray-400 line-through text-sm">
               ₹{Math.round(selectedVariant.price * 1.08)}
@@ -103,7 +105,7 @@ export default function ProductCard({ product }: ProductCardProps) {
           <button
             disabled={product.stockQuantity === 0}
             onClick={handleAdd}
-            className="min-h-11 px-3 sm:px-4 py-2 rounded-full text-primary-foreground text-sm font-semibold flex items-center gap-1.5 hover:scale-105 disabled:opacity-50 disabled:hover:scale-100 transition"
+            className="w-full justify-center min-h-11 px-3 sm:px-4 py-2 rounded-full text-primary-foreground text-sm font-semibold flex items-center gap-1.5 hover:scale-105 disabled:opacity-50 disabled:hover:scale-100 transition"
             style={{ background: "var(--gradient-hero)" }}
           >
             <ShoppingBag className="w-4 h-4" /> {product.stockQuantity === 0 ? "Sold out" : "Add"}

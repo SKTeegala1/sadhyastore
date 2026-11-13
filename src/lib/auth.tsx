@@ -17,7 +17,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const refresh = useCallback(async () => {
     setLoading(true);
     setError("");
-    for (const key of ["addresses", "orders", "admin-products", "admin-orders"])
+    for (const key of ["addresses", "orders", "admin-products", "admin-orders", "admin-slides"])
       cache.removeQueries({ queryKey: [key] });
     try {
       setUser(await api<User>("/auth/me"));
@@ -36,7 +36,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await api("/auth/logout", { method: "POST" });
     resetCsrf();
     setUser(null);
-    for (const key of ["addresses", "orders", "admin-products", "admin-orders"])
+    for (const key of ["addresses", "orders", "admin-products", "admin-orders", "admin-slides"])
       cache.removeQueries({ queryKey: [key] });
   }
   return (

@@ -105,6 +105,7 @@ api.MapPost("/auth/logout", async (SignInManager<Customer> signin) => { await si
 api.MapGet("/products", async (StoreDb db) => (await db.Products.AsNoTracking().Where(p => p.IsActive).ToListAsync()).Select(p => JsonSerializer.Deserialize<StoreProduct>(p.Json, json)));
 var adminApi = api.MapGroup("/admin").RequireAuthorization("Admin");
 api.MapCatalog(adminApi, json);
+api.MapSlides(adminApi, json);
 adminApi.MapGet("/products", async (StoreDb db) => (await db.Products.AsNoTracking().ToListAsync()).Select(p => JsonSerializer.Deserialize<StoreProduct>(p.Json, json)));
 adminApi.MapPut("/products/{id}", async (string id, StoreProduct product, StoreDb db) => {
     var error = ValidateProduct(product);
