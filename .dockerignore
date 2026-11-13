@@ -1,0 +1,12 @@
+**
+!backend/
+!backend/**
+backend/**/bin/
+backend/**/obj/
+backend/**/*.db
+backend/**/*.db-shm
+backend/**/*.db-wal
+backend/**/*.pfx
+backend/**/*.pem
+backend/**/.env*
+backend/**/*.user

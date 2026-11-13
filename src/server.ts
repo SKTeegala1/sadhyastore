@@ -48,7 +48,8 @@ export default {
   async fetch(request: Request, env: unknown, ctx: unknown) {
     try {
       if (new URL(request.url).pathname.startsWith("/api/")) {
-        const origin = (env as { STORE_API_ORIGIN?: string } | undefined)?.STORE_API_ORIGIN;
+        const bindings = env as { STORE_API_ORIGIN?: string; STORE_API_TOKEN?: string } | undefined;
+        const origin = bindings?.STORE_API_ORIGIN;
         if (!origin)
           return Response.json(
             { message: "The store API has not been configured." },
@@ -62,6 +63,12 @@ export default {
         upstream.search = incoming.search;
         const headers = new Headers(request.headers);
         headers.delete("host");
+        headers.delete("x-sadhya-gateway-key");
+        headers.delete("x-sadhya-client-ip");
+        if (bindings?.STORE_API_TOKEN)
+          headers.set("X-Sadhya-Gateway-Key", bindings.STORE_API_TOKEN);
+        const clientIp = request.headers.get("CF-Connecting-IP");
+        if (clientIp) headers.set("X-Sadhya-Client-IP", clientIp);
         headers.delete("x-forwarded-for");
         headers.delete("x-forwarded-host");
         headers.set("x-forwarded-proto", "https");

@@ -151,3 +151,7 @@ Local smoke tests cover phone normalization, uniqueness, login/password validati
 Admin product editing now uses individual **Weight / pack size** and **Price (₹)** rows, with **Add pack size**, **Remove**, and a **Default** radio selector. The selected row supplies the product's default weight and price automatically; the old duplicate default fields and pipe-separated pack-size text box are removed. Saving places the selected default first in the variant list so storefront cards and the product page initially display that same pack.
 
 At least one row is retained. Removing the default selects the first remaining row. Weights must be unique (ignoring spaces/case), with a positive price up to ₹100,000 and at most two decimal places. Existing variants and single-pack products load into the new editor without a database migration. Changes to prices/rows remain drafts until Save product. The API retains its price/default consistency checks, and storefront logic tests cover the editor's derived payload and removal behavior.
+
+## Render deployment
+
+See [DEPLOY_RENDER.md](DEPLOY_RENDER.md) for the prepared Docker/Render Blueprint, persistent SQLite storage and cookie keys, the Cloudflare gateway secret, required environment settings and acceptance tests. The deployment configuration is in root `render.yaml`. Production-mode automated checks: `python tests/deployment_smoke.py`.

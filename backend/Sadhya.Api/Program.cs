@@ -9,6 +9,7 @@ using Microsoft.EntityFrameworkCore;
 using System.Threading.RateLimiting;
 
 var builder = WebApplication.CreateBuilder(args);
+builder.ConfigureStoreDeployment();
 builder.WebHost.ConfigureKestrel(o => o.Limits.MaxRequestBodySize = 6 * 1024 * 1024);
 builder.Services.AddDbContext<StoreDb>(o => {
     var connection = builder.Configuration.GetConnectionString("Store");
@@ -70,6 +71,7 @@ app.UseExceptionHandler(handler => handler.Run(async context => {
     context.Response.StatusCode = 500;
     await context.Response.WriteAsJsonAsync(new { message = "The request could not be completed. Please try again." });
 }));
+app.UseStoreGateway();
 app.UseAuthentication();
 app.UseAuthorization();
 app.UseRateLimiter();

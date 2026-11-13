@@ -21,3 +21,5 @@ jobs:
       - run: node tests/storefront_logic.cjs
       - run: dotnet build backend/Sadhya.Api
       - run: python3 tests/api_smoke.py
+      - run: python3 tests/deployment_smoke.py
+      - run: docker build -f backend/Dockerfile -t sadhya-api-ci .
