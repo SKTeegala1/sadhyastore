@@ -50,6 +50,7 @@ using (var scope = app.Services.CreateScope()) {
     await db.Database.EnsureCreatedAsync();
     await CatalogUpgrade.Run(db, json);
     await OrderNotesUpgrade.Run(db);
+    await PhoneAccounts.Upgrade(db);
     var email = builder.Configuration["BootstrapAdmin:Email"];
     var password = builder.Configuration["BootstrapAdmin:Password"];
     if (!string.IsNullOrWhiteSpace(email) && !string.IsNullOrWhiteSpace(password)) {
@@ -85,21 +86,57 @@ api.MapGet("/auth/csrf", (HttpContext ctx, IAntiforgery anti) => {
     ctx.Response.Headers.CacheControl = "no-store";
     return Results.Ok(new { token = anti.GetAndStoreTokens(ctx).RequestToken });
 });
-api.MapPost("/auth/register", async (RegisterRequest input, UserManager<Customer> users) => {
+api.MapPost("/auth/register", async (RegisterRequest input, UserManager<Customer> users, StoreDb db) => {
     if (string.IsNullOrWhiteSpace(input.FullName) || input.FullName.Length > 100 || !new System.ComponentModel.DataAnnotations.EmailAddressAttribute().IsValid(input.Email)) return Results.BadRequest(new { message = "Enter a name and valid email address." });
-    var user = new Customer { UserName = input.Email.Trim(), Email = input.Email.Trim(), FullName = input.FullName.Trim() };
+    var phone = PhoneAccounts.Normalize(input.PhoneNumber);
+    if (phone is null) return Results.BadRequest(new { message = "Enter a valid 10-digit Indian mobile number." });
+    await using var transaction = await db.Database.BeginTransactionAsync(System.Data.IsolationLevel.Serializable);
+    if (await db.LoginPhones.AnyAsync(p => p.PhoneNumber == phone)) return Results.Conflict(new { message = "This mobile number is already registered." });
+    var user = new Customer { UserName = input.Email.Trim(), Email = input.Email.Trim(), FullName = input.FullName.Trim(), PhoneNumber = phone };
     var result = await users.CreateAsync(user, input.Password);
-    return result.Succeeded ? Results.Ok(new { message = "Account created. Please log in." }) : Results.BadRequest(new { message = string.Join(" ", result.Errors.Select(e => e.Description)) });
+    if (!result.Succeeded) return Results.BadRequest(new { message = string.Join(" ", result.Errors.Select(e => e.Description)) });
+    db.LoginPhones.Add(new LoginPhone { PhoneNumber = phone, UserId = user.Id });
+    try { await db.SaveChangesAsync(); await transaction.CommitAsync(); }
+    catch (DbUpdateException) { return Results.Conflict(new { message = "This mobile number is already registered." }); }
+    return Results.Ok(new { message = "Account created. Please log in." });
 }).RequireRateLimiting("auth");
-api.MapPost("/auth/login", async (LoginRequest input, UserManager<Customer> users, SignInManager<Customer> signin) => {
-    var user = await users.FindByEmailAsync(input.Email.Trim());
-    if (user is null) return Results.Json(new { message = "Invalid email or password." }, statusCode: 401);
+api.MapPost("/auth/login", async (LoginRequest input, UserManager<Customer> users, SignInManager<Customer> signin, StoreDb db) => {
+    var identifier = (input.Identifier ?? input.Email ?? "").Trim();
+    Customer? user = null;
+    if (identifier.Contains('@')) user = await users.FindByEmailAsync(identifier);
+    else {
+        var phone = PhoneAccounts.Normalize(identifier);
+        if (phone is not null) {
+            var loginPhone = await db.LoginPhones.AsNoTracking().SingleOrDefaultAsync(p => p.PhoneNumber == phone);
+            if (loginPhone is not null) user = await users.FindByIdAsync(loginPhone.UserId);
+        }
+    }
+    if (user is null) return Results.Json(new { message = "Invalid email/mobile number or password." }, statusCode: 401);
     var result = await signin.PasswordSignInAsync(user, input.Password, false, true);
     return result.Succeeded ? Results.Ok(new { message = "Logged in." }) : Results.Json(new { message = "Unable to log in. Check your credentials or try again later." }, statusCode: 401);
 }).RequireRateLimiting("auth");
+api.MapPost("/auth/phone", async (PhoneInput input, ClaimsPrincipal principal, UserManager<Customer> users, SignInManager<Customer> signin, StoreDb db) => {
+    var user = await users.GetUserAsync(principal);
+    if (user is null) return Results.Unauthorized();
+    if (!await users.CheckPasswordAsync(user, input.Password)) return Results.BadRequest(new { message = "Enter your current account password." });
+    var phone = PhoneAccounts.Normalize(input.PhoneNumber);
+    if (phone is null) return Results.BadRequest(new { message = "Enter a valid Indian mobile number." });
+    await using var transaction = await db.Database.BeginTransactionAsync(System.Data.IsolationLevel.Serializable);
+    var existing = await db.LoginPhones.FindAsync(phone);
+    if (existing is not null && existing.UserId != user.Id) return Results.Conflict(new { message = "This mobile number is already registered." });
+    await db.LoginPhones.Where(p => p.UserId == user.Id && p.PhoneNumber != phone).ExecuteDeleteAsync();
+    if (existing is null) db.LoginPhones.Add(new LoginPhone { PhoneNumber = phone, UserId = user.Id });
+    user.PhoneNumber = phone; user.PhoneNumberConfirmed = false;
+    var result = await users.UpdateAsync(user);
+    if (!result.Succeeded) return Results.BadRequest(new { message = "Could not update the mobile number." });
+    try { await db.SaveChangesAsync(); await transaction.CommitAsync(); }
+    catch (DbUpdateException) { return Results.Conflict(new { message = "This mobile number is already registered." }); }
+    await signin.RefreshSignInAsync(user); return Results.Ok(new { message = "Mobile number saved." });
+}).RequireAuthorization().RequireRateLimiting("auth");
+api.MapGoogleAccounts(builder.Configuration);
 api.MapGet("/auth/me", async (ClaimsPrincipal principal, UserManager<Customer> users) => {
     var user = await users.GetUserAsync(principal);
-    return user is null ? Results.Unauthorized() : Results.Ok(new { user.Id, user.Email, user.FullName, isAdmin = await users.IsInRoleAsync(user, "Admin") });
+    return user is null ? Results.Unauthorized() : Results.Ok(new { user.Id, user.Email, user.FullName, user.PhoneNumber, hasPassword = await users.HasPasswordAsync(user), googleLinked = (await users.GetLoginsAsync(user)).Any(l => l.LoginProvider == "Google"), isAdmin = await users.IsInRoleAsync(user, "Admin") });
 }).RequireAuthorization();
 api.MapPost("/auth/logout", async (SignInManager<Customer> signin) => { await signin.SignOutAsync(); return Results.NoContent(); }).RequireAuthorization();
 api.MapGet("/products", async (StoreDb db) => (await db.Products.AsNoTracking().Where(p => p.IsActive).ToListAsync()).Select(p => JsonSerializer.Deserialize<StoreProduct>(p.Json, json)));

@@ -114,3 +114,34 @@ Existing banners are provided as the initial set under stable `/slides/` URLs. A
 Use wide desktop banners (recommended 8:3) and optionally a 4:3 mobile version. The carousel fills the available screen width with cover-sized images, supports swipe, has arrows and dots overlaid on the image, uses five-second autoplay, and pauses for hover/keyboard focus/reduced-motion preferences. The banner is edge-to-edge with no side padding or maximum-width container. Mobile images keep a consistent carousel height; images with different proportions may be cropped to fill the banner. When no mobile version exists anywhere in the active set, mobile uses the wide desktop aspect ratio.
 
 Header navigation/search/account spacing and product image/title/price/Add-button alignment are updated, admin tabs wrap on small screens, and public floating help/cart buttons are omitted on admin screens. The footer WhatsApp number is aligned to the store contact 9666585143. Browser/mobile visual verification is still required in a real browser; workspace browser restrictions prevented that verification here.
+
+## Email/mobile login and Continue with Google
+
+Regular registration requires a name, email, Indian mobile number and password. Login accepts email or the registered mobile number with the same password. Numbers are normalized to ten digits; `9000000001`, `+91 90000 00001` and `919000000001` identify the same number. Duplicate registrations are rejected by the database's unique phone key. Mobile numbers are not SMS-verified, and this update does not add OTP login or phone-based password recovery.
+
+Existing accounts still log in by email. In **My account → Sign-in options**, enter a mobile number and current password to enable phone/password login or change that number. Delivery-recipient numbers remain separate. The additive LoginPhones table is created on startup; existing customer data is preserved. Back up the database and start one instance for initial upgrades.
+
+### Enable Google sign-in
+
+The app uses Google Identity Services' browser button and verifies its ID token on the .NET server using `Google.Apis.Auth` (signature, issuer, audience, expiry and verified email). Only the Google client ID is needed; **no client secret or Maps API key is used for this flow**.
+
+1. Open Google Cloud Console and create/select your own project.
+2. Set up the Google Auth/consent branding and audience. Add test users if your project is in testing.
+3. Create an OAuth client ID of type **Web application**.
+4. Add your frontend origins under **Authorized JavaScript origins**, e.g. `http://localhost:5173` (use the actual Vite port), and your production HTTPS storefront origin. Origins have no paths. This popup/callback flow does not require an application redirect URI.
+5. In the CMD terminal running the backend, stop the backend and configure:
+
+```cmd
+set Authentication__Google__ClientId=YOUR_CLIENT_ID.apps.googleusercontent.com
+set ASPNETCORE_ENVIRONMENT=Development
+set ASPNETCORE_URLS=http://localhost:5050
+dotnet run --project backend/Sadhya.Api
+```
+
+6. Keep the frontend running, refresh Login/Register, then choose **Continue with Google**. On the deployed backend, set `Authentication__Google__ClientId` in hosting configuration and use HTTPS. The same-origin Cloudflare proxy continues to handle cookies/CSRF. If browser security headers are configured separately, allow Google's Identity Services script/frame/connect endpoints according to Google's setup guide.
+
+Without the configured client ID, the Google button is disabled with a fallback message; email/mobile login continues working. No credentials are stored in this repository. A new Google user receives a customer account using the verified Google email and name; no local password is created and phone is not supplied by Google. Such customers continue using Google to sign in and provide delivery phone numbers in their addresses. Setting a local password for Google-only accounts is not included yet.
+
+If the Google email already belongs to an existing password account, sign-in does not silently merge/link it. Log in with the existing password, enter that password under My account → Sign-in options, and use the Google button there to explicitly link the Google account with the same email. Subsequent Google sign-in uses that link. Google does not grant the Admin role; new Google accounts remain customers. Existing linked roles are preserved.
+
+Local smoke tests cover phone normalization, uniqueness, login/password validation, profile updates, legacy email login, and malformed Google token rejection. A real Google account sign-in, consent/popup behavior, and account linking require your configured client ID and remain unverified here. Official setup: https://developers.google.com/identity/gsi/web/guides/get-google-api-clientid

@@ -1,3 +1,4 @@
+import GoogleSignIn from "@/components/account/GoogleSignIn";
 import { loginDestination } from "@/lib/loginDestination";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState, type FormEvent } from "react";
@@ -46,10 +47,10 @@ function Login() {
           <form onSubmit={submit} className="space-y-5">
             <ErrorNotice text={error} />
             <Field
-              label="Email address"
-              name="email"
-              type="email"
-              autoComplete="email"
+              label="Email or mobile number"
+              name="identifier"
+              type="text"
+              autoComplete="username"
               required
               maxLength={254}
             />
@@ -63,6 +64,9 @@ function Login() {
             <button disabled={busy} className={buttonClass + " w-full"}>
               {busy ? "Logging in…" : "Log in"}
             </button>
+            <div className="border-t pt-4">
+              <GoogleSignIn onSuccess={() => navigate({ to: next })} />
+            </div>
             <p className="text-sm">
               New to Sadhya?{" "}
               <Link to="/register" search={{ next }} className="font-semibold text-primary">

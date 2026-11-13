@@ -16,6 +16,7 @@ public sealed class StoreDb(DbContextOptions<StoreDb> options) : IdentityDbConte
     public DbSet<StoreCategory> Categories => Set<StoreCategory>();
     public DbSet<StoreSetting> StoreSettings => Set<StoreSetting>();
     public DbSet<MediaRow> Media => Set<MediaRow>();
+    public DbSet<LoginPhone> LoginPhones => Set<LoginPhone>();
     public DbSet<ProductRow> Products => Set<ProductRow>();
     public DbSet<AddressRow> Addresses => Set<AddressRow>();
     public DbSet<OrderRow> Orders => Set<OrderRow>();
@@ -46,8 +47,8 @@ public sealed class OrderRow
     public string ItemsJson { get; set; } = "";
     [MaxLength(80)] public string RequestKey { get; set; } = "";
 }
-public record RegisterRequest(string FullName, string Email, string Password);
-public record LoginRequest(string Email, string Password);
+public record RegisterRequest(string FullName, string Email, string Password, string? PhoneNumber = null);
+public record LoginRequest(string? Email, string Password, string? Identifier = null);
 public record Variant(string Weight, decimal Price);
 public record NutritionItem(string Name, decimal Value, string Unit);
 public record Nutrition(string ServingSize, List<NutritionItem> Items);
@@ -72,3 +73,7 @@ public sealed class StoreCategory
 public sealed class StoreSetting { [Key, MaxLength(80)] public string Key { get; set; } = ""; public string Value { get; set; } = ""; }
 public sealed class MediaRow { public Guid Id { get; set; } = Guid.NewGuid(); public string ContentType { get; set; } = ""; public byte[] Content { get; set; } = []; }
 public record CategoryInput(string Name, string Image, int SortOrder);
+
+public sealed class LoginPhone { [Key, MaxLength(10)] public string PhoneNumber { get; set; } = ""; [MaxLength(450)] public string UserId { get; set; } = ""; }
+public record PhoneInput(string PhoneNumber, string Password);
+public record GoogleInput(string Credential, string? Password = null);

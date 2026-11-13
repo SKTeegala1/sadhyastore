@@ -46,7 +46,7 @@ with tempfile.TemporaryDirectory(prefix='sadhya-api-test-') as directory:
     env = dict(os.environ, ASPNETCORE_ENVIRONMENT='Development', ASPNETCORE_URLS=BASE,
                ConnectionStrings__Store=f'Data Source={directory}/test.db',
                BootstrapAdmin__Email='admin@example.test', BootstrapAdmin__Password=PASSWORD,
-               Logging__LogLevel__Default='Warning')
+               Logging__LogLevel__Default='Warning', Authentication__Google__ClientId='test-client.apps.googleusercontent.com')
     with open(f'{directory}/server.log', 'w+') as log:
         process = subprocess.Popen([os.environ.get('DOTNET', 'dotnet'), 'run', '--no-build', '--project', str(ROOT / 'backend/Sadhya.Api')], env=env, stdout=log, stderr=log)
         try:
@@ -63,11 +63,24 @@ with tempfile.TemporaryDirectory(prefix='sadhya-api-test-') as directory:
             guest.expect(400, '/auth/login', 'POST', {'email':'admin@example.test','password':PASSWORD}, csrf=False)
             admin.expect(200, '/auth/login', 'POST', {'email':'admin@example.test','password':PASSWORD})
             assert admin.expect(200, '/auth/me')['isAdmin']
-            for client, email in [(customer, 'customer@example.test'), (other, 'other@example.test')]:
-                client.expect(200, '/auth/register', 'POST', {'fullName':'Test Customer','email':email,'password':PASSWORD})
+            for client, email, phone in [(customer, 'customer@example.test', '9000000001'), (other, 'other@example.test', '9000000002')]:
+                client.expect(200, '/auth/register', 'POST', {'fullName':'Test Customer','email':email,'password':PASSWORD,'phoneNumber':phone})
                 client.expect(200, '/auth/login', 'POST', {'email':email,'password':PASSWORD})
                 assert not client.expect(200, '/auth/me')['isAdmin']
                 client.expect(403, '/admin/products')
+            assert guest.expect(200, '/auth/google/config')['enabled']
+            guest.expect(401, '/auth/google', 'POST', {'credential':'not-a-google-token'})
+            guest.expect(401, '/auth/google/link', 'POST', {'credential':'not-a-google-token'})
+            guest.expect(400, '/auth/register', 'POST', {'fullName':'Missing phone','email':'missing@example.test','password':PASSWORD})
+            guest.expect(409, '/auth/register', 'POST', {'fullName':'Duplicate phone','email':'duplicate@example.test','password':PASSWORD,'phoneNumber':'+91 90000 00001'})
+            customer.expect(200, '/auth/login', 'POST', {'identifier':'+91 90000 00001','password':PASSWORD})
+            assert customer.expect(200, '/auth/me')['phoneNumber'] == '9000000001'
+            assert customer.expect(200, '/auth/me')['hasPassword']
+            customer.expect(401, '/auth/login', 'POST', {'identifier':'9000000001','password':'wrong-password'})
+            customer.expect(400, '/auth/phone', 'POST', {'phoneNumber':'9000000003','password':'wrong-password'})
+            customer.expect(409, '/auth/phone', 'POST', {'phoneNumber':'9000000002','password':PASSWORD})
+            customer.expect(200, '/auth/phone', 'POST', {'phoneNumber':'9000000003','password':PASSWORD})
+            customer.expect(200, '/auth/login', 'POST', {'identifier':'9000000003','password':PASSWORD})
             assert not guest.expect(200, '/slides')['configured']
             guest.expect(401, '/admin/slides')
             customer.expect(403, '/admin/slides')
@@ -154,12 +167,14 @@ with tempfile.TemporaryDirectory(prefix='sadhya-api-test-') as directory:
             # Simulate the previous release's database layout, then restart the new API.
             process.terminate(); process.wait(timeout=15)
             with sqlite3.connect(f'{directory}/test.db') as legacy:
-                for table in ['Categories', 'StoreSettings', 'Media']: legacy.execute(f'DROP TABLE {table}')
+                for table in ['Categories', 'StoreSettings', 'Media', 'LoginPhones']: legacy.execute(f'DROP TABLE {table}')
                 payload = json.loads(legacy.execute("SELECT Json FROM Products WHERE Id='test-almond'").fetchone()[0])
                 payload['categoryId'] = 2
                 legacy.execute("UPDATE Products SET Json=? WHERE Id='test-almond'", (json.dumps(payload),))
                 legacy.execute('ALTER TABLE Orders DROP COLUMN AdditionalDetails')
+                legacy.execute('UPDATE AspNetUsers SET PhoneNumber = NULL')
                 counts = [legacy.execute(f'SELECT COUNT(*) FROM {table}').fetchone()[0] for table in ['AspNetUsers','Addresses','Orders']]
+            env['Authentication__Google__ClientId'] = ''
             process = subprocess.Popen([os.environ.get('DOTNET', 'dotnet'), 'run', '--no-build', '--project', str(ROOT / 'backend/Sadhya.Api')], env=env, stdout=log, stderr=log)
             for attempt in range(100):
                 try:
@@ -167,12 +182,18 @@ with tempfile.TemporaryDirectory(prefix='sadhya-api-test-') as directory:
                 except OSError: pass
                 time.sleep(.1)
             else: raise RuntimeError('Upgraded API failed to start')
+            assert not guest.expect(200, '/auth/google/config')['enabled']
+            guest.expect(503, '/auth/google', 'POST', {'credential':'not-a-google-token'})
+            legacy_customer = Client()
+            legacy_customer.expect(200, '/auth/login', 'POST', {'email':'customer@example.test','password':PASSWORD})
+            assert legacy_customer.expect(200, '/auth/me')['phoneNumber'] is None
             with sqlite3.connect(f'{directory}/test.db') as upgraded:
                 assert any(row[1] == 'AdditionalDetails' for row in upgraded.execute('PRAGMA table_info(Orders)'))
                 assert upgraded.execute('SELECT AdditionalDetails FROM Orders').fetchone()[0] is None
                 assert counts == [upgraded.execute(f'SELECT COUNT(*) FROM {table}').fetchone()[0] for table in ['AspNetUsers','Addresses','Orders']]
                 assert json.loads(upgraded.execute("SELECT Json FROM Products WHERE Id='test-almond'").fetchone()[0])['categoryId'] == 103
             print('PASS: ordered categories, category CRUD/reassignment, admin-only raster uploads, media retrieval, delivery coordinates and non-destructive legacy database upgrade')
+            print('PASS: mobile registration/normalization/login, duplicate and missing phone rejection, password-protected phone updates, invalid Google token rejection and legacy email login')
             print('PASS: registration, cookie login/logout, CSRF, customer/admin authorization, address ownership, server pricing, variants, stock, idempotent orders, order privacy/status, hidden products')
         except Exception:
             log.seek(0)

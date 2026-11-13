@@ -1,5 +1,6 @@
+import GoogleSignIn from "@/components/account/GoogleSignIn";
 import { loginDestination } from "@/lib/loginDestination";
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState, type FormEvent } from "react";
 import { api, message } from "@/lib/api";
 import { Panel, Field, ErrorNotice, buttonClass } from "@/components/account/StoreForms";
@@ -11,6 +12,7 @@ export const Route = createFileRoute("/register")({
 });
 function Register() {
   const { next } = Route.useSearch();
+  const navigate = useNavigate();
   const [error, setError] = useState("");
   const [done, setDone] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -29,6 +31,7 @@ function Register() {
         body: JSON.stringify({
           fullName: form.get("fullName"),
           email: form.get("email"),
+          phoneNumber: form.get("phoneNumber"),
           password: form.get("password"),
         }),
       });
@@ -62,6 +65,16 @@ function Register() {
               maxLength={254}
             />
             <Field
+              label="Mobile number"
+              name="phoneNumber"
+              type="tel"
+              autoComplete="tel"
+              inputMode="tel"
+              placeholder="10-digit mobile number or +91…"
+              maxLength={20}
+              required
+            />
+            <Field
               label="Password"
               name="password"
               type="password"
@@ -83,6 +96,9 @@ function Register() {
             <button disabled={busy} className={buttonClass + " w-full"}>
               {busy ? "Creating account…" : "Register"}
             </button>
+            <div className="border-t pt-4">
+              <GoogleSignIn onSuccess={() => navigate({ to: next })} />
+            </div>
             <p className="text-sm">
               Already registered?{" "}
               <Link to="/login" search={{ next }} className="text-primary">

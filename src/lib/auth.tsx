@@ -1,7 +1,15 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from "react";
 import { api, ApiError, resetCsrf } from "./api";
-export type User = { id: string; email: string; fullName: string; isAdmin: boolean };
+export type User = {
+  id: string;
+  email: string;
+  fullName: string;
+  phoneNumber?: string | null;
+  hasPassword: boolean;
+  googleLinked: boolean;
+  isAdmin: boolean;
+};
 const Context = createContext<{
   user: User | null;
   loading: boolean;

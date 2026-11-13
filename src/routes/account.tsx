@@ -1,3 +1,4 @@
+import AccountSignInSettings from "@/components/account/AccountSignInSettings";
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/lib/auth";
@@ -23,6 +24,7 @@ function Account() {
   } = useQuery({ queryKey: ["orders", user?.id], queryFn: () => api<Order[]>("/orders") });
   return (
     <Panel title={`Hello, ${user?.fullName}`} subtitle="Your delivery addresses and order history.">
+      <AccountSignInSettings />
       <h2 className="mb-4 text-xl font-semibold">Saved addresses</h2>
       <AddressBook />
       <h2 id="orders" className="mb-4 mt-10 scroll-mt-28 text-xl font-semibold">
