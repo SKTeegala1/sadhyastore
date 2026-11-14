@@ -1,60 +1,46 @@
+import { Link } from "@tanstack/react-router";
 import type { Product, Category } from "@/lib/cart";
-import { useNavigate } from "@tanstack/react-router";
 import ProductCard from "../ProductCard";
-
-type Props = {
-  category: Category;
-  products: Product[];
-};
-
-
 export default function CategorySection({
   category,
   products,
-}: Props) {
-
-    const navigate = useNavigate();
-
-    const handleViewAll = () => {
-    navigate({
-        to: "/category/$categoryId",
-        params: {
-            categoryId: category.id.toString(),
-        },
-    });
-};
-
-    return (
-  <section className="mb-16">
-
-    <div className="flex items-center justify-between mb-6">
-
-      <div>
-
-        <h2 className="text-3xl font-display font-bold text-secondary">
+}: {
+  category: Category;
+  products: Product[];
+}) {
+  return (
+    <section
+      aria-label={`${category.name} products`}
+      className="border-t border-primary/15 pt-8 sm:pt-10"
+    >
+      <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
+        <h2 className="flex min-w-0 items-center gap-3 font-display text-xl font-bold tracking-wide text-secondary sm:text-3xl">
+          <span aria-hidden="true" className="text-base text-primary">
+            ✦
+          </span>
           {category.name}
+          <span aria-hidden="true" className="hidden h-px w-12 bg-primary/40 sm:block" />
         </h2>
-
-        <p className="text-muted-foreground mt-1">
-          Premium {category.name.toLowerCase()} Collection
-        </p>
-
+        <Link
+          to="/category/$categoryId"
+          params={{ categoryId: String(category.id) }}
+          aria-label={`View all ${category.name} products`}
+          className="inline-flex min-h-11 shrink-0 items-center gap-2 rounded-full border border-primary/30 px-4 text-sm font-semibold text-primary transition hover:bg-primary/10"
+        >
+          View All <span aria-hidden="true">→</span>
+        </Link>
       </div>
-
-      <button
-        onClick={handleViewAll}
-        className="text-primary font-semibold hover:underline"
-      >
-        View All →
-      </button>
-
-    </div>
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                      {products.map((p) => (
-                        <ProductCard key={p.id} product={p} />
-                      ))}
-                    </div>
-
-  </section>
-);
+      {products.length ? (
+        <div className="grid grid-cols-2 gap-3 sm:gap-6 lg:grid-cols-4">
+          {products.map((product) => (
+            <ProductCard key={product.id} product={product} />
+          ))}
+        </div>
+      ) : (
+        <p className="rounded-2xl border border-dashed p-6 text-center text-sm text-muted-foreground">
+          New products are coming to this collection soon.
+        </p>
+      )}
+    </section>
+  );
 }

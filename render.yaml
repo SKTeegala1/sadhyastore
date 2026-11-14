@@ -1,0 +1,36 @@
+services:
+  - type: web
+    name: sadhya-api
+    runtime: docker
+    repo: https://github.com/SKTeegala1/sadhyastore
+    branch: feature/ecommerce-accounts-admin
+    region: singapore
+    plan: 0.5c-512mb
+    numInstances: 1
+    autoDeployTrigger: "off"
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: .
+    healthCheckPath: /api/health
+    disk:
+      name: sadhya-data
+      mountPath: /var/data
+      sizeGB: 1
+    envVars:
+      - key: ASPNETCORE_ENVIRONMENT
+        value: Production
+      - key: PORT
+        value: "10000"
+      - key: DatabaseProvider
+        value: Sqlite
+      - key: Storage__Path
+        value: /var/data
+      - key: ConnectionStrings__Store
+        value: Data Source=/var/data/sadhya.db
+      - key: DataProtection__KeyPath
+        value: /var/data/keys
+      - key: Gateway__Token
+        generateValue: true
+      - key: BootstrapAdmin__Email
+        sync: false
+      - key: BootstrapAdmin__Password
+        sync: false

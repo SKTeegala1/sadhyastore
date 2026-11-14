@@ -30,7 +30,7 @@ export default function ProductPurchase({ product }: Props) {
 }, [product]);
 
   const handleAdd = () => {
-    console.log("Add To Cart clicked", selectedVariant);
+    if (product.stockQuantity === 0) return;
     add(
       {
         ...product,
@@ -44,7 +44,7 @@ export default function ProductPurchase({ product }: Props) {
       product.image
     );
 
-    console.log("Completed To Cart clicked", selectedVariant);
+
   };
 
   return (
@@ -120,9 +120,10 @@ export default function ProductPurchase({ product }: Props) {
       <Button
         size="lg"
         className="w-full"
+        disabled={product.stockQuantity === 0}
         onClick={handleAdd}
       >
-        Add To Cart
+        {product.stockQuantity === 0 ? "Out of stock" : "Add To Cart"}
       </Button>
 
     </div>
