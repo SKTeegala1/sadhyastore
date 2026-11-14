@@ -140,6 +140,12 @@ with tempfile.TemporaryDirectory(prefix='sadhya-api-test-') as directory:
                 print(f"PASS: imported and validated all {len(products)} existing catalog products")
             product = dict(id='test-almond', name='Test Almond', categoryId=103, image='/test.jpg', images=[], tagline='Fresh', price=200, weight='250g', variants=[{'weight':'250g','price':200},{'weight':'500g','price':380}], description='Test product', benefits=[], nutrition={'servingSize':'100g','items':[]}, storage=[], delivery=[], rating=0, reviews=0, stockQuantity=5, isActive=True, isBestSeller=True, isOffer=True)
             customer.expect(403, '/admin/products/test-almond', 'PUT', product)
+            for field, value, expected in [
+                ('description', ' ', 'description'), ('rating', 6, 'rating'),
+                ('stockQuantity', -1, 'Stock quantity'), ('price', 0, 'pack price'),
+                ('id', 'Bad ID', 'Product ID'), ('nutrition', None, 'Nutrition')]:
+                failure = admin.expect(400, '/admin/products/test-almond', 'PUT', dict(product, **{field:value}))
+                assert expected in failure['message'], failure
             admin.expect(200, '/admin/products/test-almond', 'PUT', product)
             admin.expect(400, '/admin/products/test-almond', 'PUT', dict(product, categoryId=99999))
             assert len(guest.expect(200, '/products')) == 1

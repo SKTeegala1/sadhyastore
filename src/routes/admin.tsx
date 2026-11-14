@@ -269,6 +269,7 @@ function Admin() {
               initial={draft}
               isNew={isNew}
               busy={busy}
+              saveError={error}
               onCancel={() => setDraft(null)}
               onSave={(p) =>
                 run(async () => {
@@ -317,12 +318,14 @@ function ProductEditor({
   initial,
   isNew,
   busy,
+  saveError,
   onSave,
   onCancel,
 }: {
   initial: StoreProduct;
   isNew: boolean;
   busy: boolean;
+  saveError: string;
   onSave: (product: StoreProduct) => Promise<void>;
   onCancel: () => void;
 }) {
@@ -332,7 +335,7 @@ function ProductEditor({
   const [error, setError] = useState("");
   const [packEditor, setPackEditor] = useState(() => initialPacks(initial));
   const [nutrition, setNutrition] = useState(
-    initial.nutrition.items.map((i) => `${i.name} | ${i.value} | ${i.unit}`).join("\n"),
+    (initial.nutrition?.items ?? []).map((i) => `${i.name} | ${i.value} | ${i.unit}`).join("\n"),
   );
   const update = <K extends keyof StoreProduct>(key: K, value: StoreProduct[K]) =>
     set((prev) => ({ ...prev, [key]: value }));
@@ -362,14 +365,20 @@ function ProductEditor({
     }
     await onSave({
       ...p,
+      id: p.id.trim(),
+      name: p.name.trim(),
+      image: p.image.trim(),
+      description: p.description.trim(),
+      rating: p.rating ?? 0,
+      reviews: p.reviews ?? 0,
       images: p.images?.filter((v) => v.trim()),
-      benefits: p.benefits.filter((v) => v.trim()),
-      storage: p.storage.filter((v) => v.trim()),
-      delivery: p.delivery.filter((v) => v.trim()),
+      benefits: (p.benefits ?? []).filter((v) => v.trim()),
+      storage: (p.storage ?? []).filter((v) => v.trim()),
+      delivery: (p.delivery ?? []).filter((v) => v.trim()),
       variants: packs.variants,
       weight: packs.weight,
       price: packs.price,
-      nutrition: { ...p.nutrition, items },
+      nutrition: { servingSize: p.nutrition?.servingSize || "100g", items },
     });
   }
   function lines(label: string, key: "benefits" | "storage" | "delivery" | "images") {
@@ -393,13 +402,14 @@ function ProductEditor({
           Close
         </button>
       </div>
-      <ErrorNotice text={error} />
+      <ErrorNotice text={error || saveError} />
       <form onSubmit={submit} className="grid gap-4 md:grid-cols-2">
         <Field
           label="Product ID (lowercase, hyphens)"
           value={p.id}
           disabled={!isNew}
           pattern="[a-z0-9][a-z0-9-]{0,79}"
+          title="Use lowercase letters, numbers and hyphens only (maximum 80 characters)."
           required
           onChange={(e) => update("id", e.target.value)}
         />
@@ -494,6 +504,10 @@ function ProductEditor({
           value={p.stockQuantity}
           onChange={(e) => update("stockQuantity", Number(e.target.value))}
         />
+        <Field label="Rating (0–5)" type="number" min="0" max="5" step="0.1"
+          value={p.rating ?? 0} onChange={(e) => update("rating", Number(e.target.value))} />
+        <Field label="Review count" type="number" min="0" step="1"
+          value={p.reviews ?? 0} onChange={(e) => update("reviews", Number(e.target.value))} />
         <label className="flex items-center gap-3">
           <input
             type="checkbox"
@@ -534,7 +548,7 @@ function ProductEditor({
         {lines("Delivery details", "delivery")}
         <Field
           label="Nutrition serving size"
-          value={p.nutrition.servingSize}
+          value={p.nutrition?.servingSize ?? "100g"}
           onChange={(e) => update("nutrition", { ...p.nutrition, servingSize: e.target.value })}
         />
         <label className="grid gap-1 text-sm md:col-span-2">

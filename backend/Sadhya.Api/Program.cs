@@ -220,7 +220,20 @@ app.Run();
 
 object OrderView(OrderRow o) => new { o.Id, o.CustomerEmail, o.CreatedAt, o.Status, o.Total, o.AdditionalDetails, paymentMethod = "Cash on delivery", address = JsonSerializer.Deserialize<AddressInput>(o.AddressJson, json), items = JsonSerializer.Deserialize<List<OrderLine>>(o.ItemsJson, json) };
 static string? ValidateProduct(StoreProduct p) {
-    if (!Regex.IsMatch(p.Id ?? "", @"^[a-z0-9][a-z0-9-]{0,79}$") || string.IsNullOrWhiteSpace(p.Name) || p.Name.Length > 150 || p.CategoryId < 1 || p.Price <= 0 || p.Price > 100000 || p.StockQuantity < 0 || p.StockQuantity > 1000000 || string.IsNullOrWhiteSpace(p.Weight) || string.IsNullOrWhiteSpace(p.Description) || p.Benefits is null || p.Storage is null || p.Delivery is null || p.Nutrition is null || p.Nutrition.Items is null || p.Rating < 0 || p.Rating > 5 || p.Reviews < 0) return "Complete all product fields with valid prices and stock.";
+    if (!Regex.IsMatch(p.Id ?? "", @"^[a-z0-9][a-z0-9-]{0,79}$")) return "Product ID must be 1–80 characters: lowercase letters, numbers and hyphens only, starting with a letter or number.";
+    if (string.IsNullOrWhiteSpace(p.Name) || p.Name.Length > 150) return "Product name is required and must not exceed 150 characters.";
+    if (p.CategoryId < 1) return "Choose a product category.";
+    if (p.Price <= 0 || p.Price > 100000) return "Default pack price must be greater than 0 and no more than 100000.";
+    if (p.StockQuantity < 0 || p.StockQuantity > 1000000) return "Stock quantity must be a whole number from 0 to 1000000.";
+    if (string.IsNullOrWhiteSpace(p.Weight)) return "Enter the default pack weight, for example 250g.";
+    if (string.IsNullOrWhiteSpace(p.Description)) return "Product description is required.";
+    if (p.Benefits is null) return "Benefits must be a list; use an empty list when there are no benefits.";
+    if (p.Storage is null) return "Storage instructions must be a list; use an empty list when there are none.";
+    if (p.Delivery is null) return "Delivery details must be a list; use an empty list when there are none.";
+    if (p.Nutrition is null || p.Nutrition.Items is null) return "Nutrition details must include an items list; it can be empty.";
+    if (p.Nutrition.Items.Any(i => string.IsNullOrWhiteSpace(i.Name) || string.IsNullOrWhiteSpace(i.Unit) || i.Value < 0)) return "Each nutrition row needs a name, a nonnegative value and a unit.";
+    if (p.Rating < 0 || p.Rating > 5) return "Product rating must be between 0 and 5.";
+    if (p.Reviews < 0) return "Review count cannot be negative.";
     bool ImageValid(string image) => CatalogEndpoints.ImageValid(image);
     if (!ImageValid(p.Image) || (p.Images?.Any(i => !ImageValid(i)) ?? false)) return "Use a relative image path or HTTPS image URL.";
     if (p.Variants is { Count: > 0 } && (p.Variants.Any(v => string.IsNullOrWhiteSpace(v.Weight) || v.Price <= 0 || v.Price > 100000) || p.Variants.Select(v => v.Weight).Distinct().Count() != p.Variants.Count || !p.Variants.Any(v => v.Weight == p.Weight && v.Price == p.Price))) return "Pack sizes must be unique and include the default weight and price.";
