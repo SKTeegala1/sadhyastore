@@ -1,3 +1,4 @@
+import { mediaUrl } from "@/lib/media";
 import { useState } from "react";
 import type { Product } from "@/lib/cart";
 export default function ProductGallery({ product }: { product: Product }) {
@@ -17,7 +18,7 @@ export default function ProductGallery({ product }: { product: Product }) {
             onClick={() => setSelected(image)}
             className={`h-16 w-16 shrink-0 overflow-hidden rounded-xl border-2 bg-white sm:h-20 sm:w-20 ${image === current ? "border-primary" : "border-border"}`}
           >
-            <img src={image} alt="" className="h-full w-full object-contain p-1" />
+            <img src={mediaUrl(image, 160)} loading="lazy" decoding="async" alt="" className="h-full w-full object-contain p-1" />
           </button>
         ))}
       </div>
@@ -38,7 +39,8 @@ export default function ProductGallery({ product }: { product: Product }) {
           }}
         >
           <img
-            src={current}
+            src={mediaUrl(current, 900)}
+            decoding="async"
             alt={product.name}
             className={
               "absolute inset-0 h-full w-full object-contain p-4 transition-transform sm:p-8 " +

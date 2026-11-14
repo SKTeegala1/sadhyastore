@@ -99,3 +99,13 @@ The current health endpoint checks process reachability; the acceptance flow abo
 | Browser remains logged out after deploy | Confirm /var/data/keys persists and the old disk has not been replaced. |
 
 Reference docs: https://render.com/docs/blueprint-spec · https://render.com/docs/disks · https://render.com/docs/deploy-to-render
+
+### Image storage and performance
+
+New uploads are stored as optimized WebP files under `/var/data/media` on the existing persistent disk. Product/category/slide records keep `/api/media/{id}` paths. Do not put this folder in the repository or the disposable container filesystem. `Media__Directory` can override it. Locally the default is `App_Data/media` relative to the API working directory.
+
+Existing database images remain readable without re-uploading. Their WebP variants are generated on first request in the same folder; cards request 400px, category/gallery thumbnails 160px, details 900px and banners 1600px. Public media responses are cached at Cloudflare and in browsers. Replacing an image creates a new ID, so edits do not reuse an old cached image. Customer/account/order APIs remain uncached.
+
+Backups must now include **both** `sadhya.db` and the entire `media` folder (plus the existing Data Protection keys). Never delete the database's legacy `Media` rows until a separately verified migration has completed.
+
+Deploy the backend first, then deploy the frontend from the same commit. No database reset or image re-upload is required. The frontend build generates WebP variants for bundled catalogue and slide images automatically.

@@ -2,8 +2,9 @@
 set -eu
 storage="${Storage__Path:-/var/data}"
 keys="${DataProtection__KeyPath:-$storage/keys}"
-mkdir -p "$storage" "$keys"
-chown -R app:app "$storage" "$keys"
+export Media__Directory="${Media__Directory:-$storage/media}"
+mkdir -p "$storage" "$keys" "$Media__Directory"
+chown -R app:app "$storage" "$keys" "$Media__Directory"
 chmod 700 "$keys"
 export DataProtection__KeyPath="$keys"
 export ConnectionStrings__Store="${ConnectionStrings__Store:-Data Source=$storage/sadhya.db}"

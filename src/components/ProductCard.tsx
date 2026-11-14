@@ -1,3 +1,4 @@
+import { mediaUrl } from "@/lib/media";
 import { useEffect, useRef, useState } from "react";
 import { Product } from "@/lib/cart";
 import { useCart } from "@/lib/cart";
@@ -64,7 +65,10 @@ export default function ProductCard({ product }: ProductCardProps) {
         >
           <img
             ref={imgRef}
-            src={product.image}
+            src={mediaUrl(product.image, 400)}
+            decoding="async"
+            width={400}
+            height={400}
             alt={product.name}
             loading="lazy"
             className="w-full h-full object-cover group-hover:scale-110 transition duration-500"

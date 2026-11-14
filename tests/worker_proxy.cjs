@@ -26,6 +26,12 @@ const { pathToFileURL } = require("node:url");
         { headers: { "Set-Cookie": "test=value; Secure; HttpOnly" } },
       );
     };
+    // Only public image responses can enter the edge cache; account APIs stay private.
+    const cache = new Map();
+    global.caches = { default: {
+      match: async key => cache.get(key.url)?.clone(),
+      put: async (key, value) => { cache.set(key.url, value); },
+    } };
     const env = { ...config.vars, STORE_API_TOKEN: "test-gateway-token" };
     let result = await worker.fetch(
       new Request("https://www.sadhyasnackboxnutz.com/api/health"),
@@ -37,6 +43,15 @@ const { pathToFileURL } = require("node:url");
     assert.equal(seen.url, "https://sadhya-api.onrender.com/api/health");
     assert.equal(result.headers.get("Cache-Control"), "no-store");
     assert.match(result.headers.get("Set-Cookie"), /Secure/);
+    const existingFetch = global.fetch;
+    let imageCalls = 0;
+    global.fetch = async () => { imageCalls++; return new Response("image", { headers: { "Content-Type": "image/webp" } }); };
+    const imageRequest = new Request("https://www.sadhyasnackboxnutz.com/api/media/20000000-0000-0000-0000-000000000001?w=400");
+    const firstImage = await worker.fetch(imageRequest, env, {});
+    assert.match(firstImage.headers.get("Cache-Control"), /public.*immutable/);
+    await worker.fetch(imageRequest, env, {});
+    assert.equal(imageCalls, 1, "repeat images should use edge cache");
+    global.fetch = existingFetch;
     result = await worker.fetch(
       new Request("https://www.sadhyasnackboxnutz.com/api/auth/login?test=1", {
         method: "POST",
@@ -71,6 +86,7 @@ const { pathToFileURL } = require("node:url");
     );
   } finally {
     global.fetch = nativeFetch;
+    delete global.caches;
   }
 })().catch((error) => {
   console.error(error);

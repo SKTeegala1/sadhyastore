@@ -3,6 +3,8 @@ Run: python tests/api_smoke.py (requires .NET 10 SDK on PATH).
 """
 import http.cookiejar
 import base64
+import struct
+import zlib
 import sqlite3
 import json
 import os
@@ -44,7 +46,7 @@ class Client:
 
 with tempfile.TemporaryDirectory(prefix='sadhya-api-test-') as directory:
     env = dict(os.environ, ASPNETCORE_ENVIRONMENT='Development', ASPNETCORE_URLS=BASE,
-               ConnectionStrings__Store=f'Data Source={directory}/test.db',
+               ConnectionStrings__Store=f'Data Source={directory}/test.db', Media__Directory=f'{directory}/media',
                BootstrapAdmin__Email='admin@example.test', BootstrapAdmin__Password=PASSWORD,
                Logging__LogLevel__Default='Warning', Authentication__Google__ClientId='test-client.apps.googleusercontent.com')
     with open(f'{directory}/server.log', 'w+') as log:
@@ -107,13 +109,24 @@ with tempfile.TemporaryDirectory(prefix='sadhya-api-test-') as directory:
             boundary = 'SadhyaSmokeBoundary'
             def multipart(data):
                 return ('--' + boundary + '\r\nContent-Disposition: form-data; name="file"; filename="test.png"\r\nContent-Type: image/png\r\n\r\n').encode() + data + ('\r\n--' + boundary + '--\r\n').encode()
-            png = base64.b64decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jRZkAAAAASUVORK5CYII=')
+            def chunk(kind, content):
+                return struct.pack('>I', len(content)) + kind + content + struct.pack('>I', zlib.crc32(kind + content))
+            png = b'\x89PNG\r\n\x1a\n' + chunk(b'IHDR', struct.pack('>IIBBBBB', 1, 1, 8, 2, 0, 0, 0)) + chunk(b'IDAT', zlib.compress(b'\x00\xff\x00\x00')) + chunk(b'IEND', b'')
             upload = multipart(png)
             upload_type = 'multipart/form-data; boundary=' + boundary
             customer.expect(403, '/admin/media', 'POST', upload, content_type=upload_type)
             admin.expect(400, '/admin/media', 'POST', multipart(b'<svg>not permitted</svg>'), content_type=upload_type)
             media = admin.expect(200, '/admin/media', 'POST', upload, content_type=upload_type)
-            assert guest.expect(200, media['url'][4:]) == png
+            encoded = guest.expect(200, media['url'][4:])
+            assert encoded[:4] == b'RIFF' and encoded[8:12] == b'WEBP'
+            assert list(Path(directory, 'media').glob('*.webp'))
+            assert sqlite3.connect(f'{directory}/test.db').execute('SELECT COUNT(*) FROM Media').fetchone()[0] == 0
+            assert guest.expect(200, media['url'][4:] + '?w=400')[8:12] == b'WEBP'
+            guest.expect(400, media['url'][4:] + '?w=999')
+            legacy_id = '30000000-0000-0000-0000-000000000001'
+            with sqlite3.connect(f'{directory}/test.db') as conn:
+                conn.execute('INSERT INTO Media (Id, ContentType, Content) VALUES (?, ?, ?)', (legacy_id.upper(), 'image/png', png))
+            assert guest.expect(200, '/media/' + legacy_id + '?w=400')[8:12] == b'WEBP'
             admin.expect(200, '/admin/slides', 'PUT', [dict(slide, image=media['url'])])
             assert guest.expect(200, '/slides')['slides'][0]['image'] == media['url']
             admin.expect(200, '/admin/categories/103', 'PUT', {'name':'Nuts','image':media['url'],'sortOrder':2})

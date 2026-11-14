@@ -72,13 +72,33 @@ export default {
         headers.delete("x-forwarded-for");
         headers.delete("x-forwarded-host");
         headers.set("x-forwarded-proto", "https");
+        const publicMedia = request.method === "GET" && /^\/api\/media\/[0-9a-f-]{36}$/i.test(incoming.pathname)
+          && [...incoming.searchParams.keys()].every(key => key === "w")
+          && (!incoming.searchParams.has("w") || /^(160|400|900|1600)$/.test(incoming.searchParams.get("w")!));
+        const edgeCache = (globalThis as unknown as { caches?: { default?: { match: (key: Request) => Promise<Response | undefined>; put: (key: Request, value: Response) => Promise<void> } } }).caches?.default;
+        const cacheKey = new Request(incoming.toString());
+        if (publicMedia && edgeCache) {
+          const cached = await edgeCache.match(cacheKey);
+          if (cached) return cached;
+          // Media IDs are public and immutable; never forward customer credentials.
+          headers.delete("cookie");
+          headers.delete("authorization");
+        }
         try {
           const response = await fetch(new Request(upstream, request), {
             headers,
             redirect: "manual",
           });
           const result = new Response(response.body, response);
-          result.headers.set("Cache-Control", "no-store");
+          if (publicMedia && result.status === 200 && result.headers.get("Content-Type")?.startsWith("image/") && !result.headers.has("Set-Cookie")) {
+            result.headers.set("Cache-Control", "public, max-age=31536000, immutable");
+            if (edgeCache) {
+              const pending = edgeCache.put(cacheKey, result.clone()).catch(() => {});
+              const context = ctx as { waitUntil?: (task: Promise<unknown>) => void };
+              if (context?.waitUntil) context.waitUntil(pending);
+              else await pending;
+            }
+          } else result.headers.set("Cache-Control", "no-store");
           return result;
         } catch {
           return Response.json(

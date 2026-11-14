@@ -34,7 +34,7 @@ public static class CatalogEndpoints
             }
             db.Categories.Remove(category); await db.SaveChangesAsync(); await transaction.CommitAsync(); return Results.NoContent();
         });
-        admin.MapPost("/media", async (HttpRequest request, StoreDb db) => {
+        admin.MapPost("/media", async (HttpRequest request, IConfiguration config) => {
             const int maxBytes = 5 * 1024 * 1024;
             if (!request.HasFormContentType || request.ContentLength > maxBytes + 65536) return Results.BadRequest(new { message = "Upload a JPEG, PNG or WebP image up to 5 MB." });
             var form = await request.ReadFormAsync();
@@ -46,14 +46,41 @@ public static class CatalogEndpoints
                 : data[0] == 0xff && data[1] == 0xd8 && data[2] == 0xff ? "image/jpeg"
                 : data.AsSpan(0, 4).SequenceEqual("RIFF"u8) && data.AsSpan(8, 4).SequenceEqual("WEBP"u8) ? "image/webp" : null;
             if (type is null) return Results.BadRequest(new { message = "The file is not a supported JPEG, PNG or WebP image." });
-            var media = new MediaRow { Content = data, ContentType = type };
-            db.Media.Add(media); await db.SaveChangesAsync(); return Results.Ok(new { url = $"/api/media/{media.Id}" });
+            await MediaFiles.Gate.WaitAsync();
+            try {
+                var id = Guid.NewGuid();
+                var path = Path.Combine(MediaFiles.Root(config), $"{id:N}.webp");
+                var optimized = await MediaFiles.Encode(data, 1600);
+                await MediaFiles.Write(path, optimized);
+                return Results.Ok(new { url = $"/api/media/{id}" });
+            } catch (InvalidDataException error) {
+                return Results.BadRequest(new { message = error.Message });
+            } finally { MediaFiles.Gate.Release(); }
         });
-        api.MapGet("/media/{id:guid}", async (Guid id, StoreDb db, HttpResponse response) => {
-            var media = await db.Media.AsNoTracking().SingleOrDefaultAsync(m => m.Id == id);
-            if (media is null) return Results.NotFound();
+        api.MapGet("/media/{id:guid}", async (Guid id, int? w, StoreDb db, IConfiguration config, HttpResponse response) => {
+            // A fixed set prevents unlimited variants and unbounded disk usage.
+            if (w.HasValue && w != 160 && w != 400 && w != 900 && w != 1600)
+                return Results.BadRequest(new { message = "Unsupported image width." });
+            var width = w ?? 1600;
+            var root = MediaFiles.Root(config);
+            var original = Path.Combine(root, $"{id:N}.webp");
+            var path = Path.Combine(root, $"{id:N}-{width}-v1.webp");
+            await MediaFiles.Gate.WaitAsync();
+            try {
+                if (!File.Exists(path)) {
+                    byte[] source;
+                    if (File.Exists(original)) source = await File.ReadAllBytesAsync(original);
+                    else {
+                        var legacy = await db.Media.AsNoTracking().SingleOrDefaultAsync(m => m.Id == id);
+                        if (legacy is null) return Results.NotFound();
+                        source = legacy.Content;
+                    }
+                    await MediaFiles.Write(path, await MediaFiles.Encode(source, width));
+                }
+            } finally { MediaFiles.Gate.Release(); }
             response.Headers["X-Content-Type-Options"] = "nosniff";
-            return Results.File(media.Content, media.ContentType);
+            response.Headers.CacheControl = "public,max-age=31536000,immutable";
+            return Results.File(path, "image/webp", entityTag: new Microsoft.Net.Http.Headers.EntityTagHeaderValue($"\"{id:N}-{width}-v1\""), enableRangeProcessing: true);
         });
     }
     private static bool ValidCategory(CategoryInput input) => !string.IsNullOrWhiteSpace(input.Name) && input.Name.Trim().Length <= 80 && ImageValid(input.Image) && input.SortOrder >= 0 && input.SortOrder <= 10000;

@@ -1,3 +1,4 @@
+import { mediaUrl } from "@/lib/media";
 import { useCategories } from "@/lib/categories";
 import { useCatalog } from "@/lib/catalog";
 import { Search } from "lucide-react";
@@ -138,7 +139,7 @@ export default function SearchBar({ onNavigate }: SearchBarProps) {
 ${selectedIndex === index ? "bg-primary/10" : "hover:bg-muted"}`}
             >
               <img
-                src={product.image}
+                src={mediaUrl(product.image, 160)} decoding="async"
                 alt={product.name}
                 className="w-12 h-12 rounded-lg object-cover"
               />

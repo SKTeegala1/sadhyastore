@@ -1,3 +1,4 @@
+import { mediaUrl } from "@/lib/media";
 import type { Product } from "@/lib/cart";
 
 type ProductImageProps = {
@@ -11,7 +12,7 @@ export default function ProductImage({
     <div className="rounded-3xl border bg-card p-8 shadow-sm">
 
       <img
-        src={product.image}
+        src={mediaUrl(product.image, 900)} decoding="async"
         alt={product.name}
         className="
           w-full

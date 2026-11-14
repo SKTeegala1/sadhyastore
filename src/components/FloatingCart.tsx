@@ -1,3 +1,4 @@
+import { mediaUrl } from "@/lib/media";
 import { useNavigate } from "@tanstack/react-router";
 import { useCart } from "@/lib/cart";
 import { useEffect, useRef, useState } from "react";
@@ -101,7 +102,7 @@ export default function FloatingCart() {
               )}
               {items.map((it) => (
                 <div key={it.cartKey} className="flex gap-4 p-3 rounded-xl border bg-card">
-                  <img src={it.image} alt={it.name} className="w-20 h-20 rounded-lg object-cover" />
+                  <img src={mediaUrl(it.image, 160)} decoding="async" alt={it.name} className="w-20 h-20 rounded-lg object-cover" />
                   <div className="flex-1">
                     <h3 className="font-semibold text-card-foreground">{it.name}</h3>
                     <p className="text-xs text-muted-foreground">{it.weight}</p>

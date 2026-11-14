@@ -1,3 +1,4 @@
+import { mediaUrl } from "@/lib/media";
 import { ChevronLeft, ChevronRight, Pause, Play } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import { DEFAULT_SLIDES, useSlides } from "@/lib/slides";
@@ -79,10 +80,12 @@ export default function Hero() {
               }
             >
               {slide.mobileImage && (
-                <source media="(max-width: 639px)" srcSet={slide.mobileImage} />
+                <source media="(max-width: 639px)" srcSet={mediaUrl(slide.mobileImage, 900)} />
               )}
               <img
-                src={slide.image}
+                src={mediaUrl(slide.image, 1600)}
+                decoding="async"
+                fetchPriority={i === index ? "high" : "low"}
                 alt={slide.alt}
                 loading={i === 0 ? "eager" : "lazy"}
                 className="h-full w-full object-cover object-center"

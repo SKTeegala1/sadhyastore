@@ -1,3 +1,4 @@
+import { mediaUrl } from "@/lib/media";
 import { Link } from "@tanstack/react-router";
 import { useCategories } from "@/lib/categories";
 export default function CategoryGrid() {
@@ -34,7 +35,10 @@ export default function CategoryGrid() {
             >
               <div className="mb-3 aspect-square w-full max-w-36 overflow-hidden rounded-full border border-primary/10 bg-muted shadow-sm transition group-hover:-translate-y-1 group-hover:shadow-md">
                 <img
-                  src={c.image}
+                  src={mediaUrl(c.image, 160)}
+                  decoding="async"
+                  width={160}
+                  height={160}
                   alt=""
                   loading="lazy"
                   className="h-full w-full object-cover transition duration-300 group-hover:scale-105"

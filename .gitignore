@@ -40,3 +40,7 @@ dist-ssr
 .env
 .env.*
 !.env.example
+
+# Uploaded images and generated variants
+**/App_Data/media/
+public/optimized/
